@@ -1290,11 +1290,12 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             }
         }
 
-        if (nValueIn < GetValueOut())
+        if (nValueIn < GetValueOut(pindexBest->nHeight - pindexBlock->nHeight + 1))
+
             return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
 
         // Tally transaction fees
-        int64 nTxFee = nValueIn - GetValueOut();
+        int64 nTxFee = nValueIn - GetValueOut(pindexBest->nHeight - pindexBlock->nHeight + 1);
         if (nTxFee < 0)
             return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
         nFees += nTxFee;
@@ -1766,20 +1767,20 @@ bool CBlock::CheckBlock() const
         if (vtx[i].IsCoinBase())
             return DoS(100, error("CheckBlock() : more than one coinbase"));
 
-	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(GetHash());
-	if (mi == mapBlockIndex.end())
-		return error("CheckBlock() : Block Index contains no blocks??");
-
-	CBlockIndex* pindex = (*mi).second;
-	if (!pindex || !pindex->IsInMainChain())
-		return error("CheckBlock() : invalid block index");
-
-	int nDeltaDepth = pindexBest->nHeight - pindex->nHeight + 1;
+//	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(GetHash());
+//	if (mi == mapBlockIndex.end())
+//		return error("CheckBlock() : Block not found?? -- Matt ");
+//
+//	CBlockIndex* pindex = (*mi).second;
+//	if (!pindex || !pindex->IsInMainChain())
+//		return error("CheckBlock() : invalid block index");
+//
+//	int nDeltaDepth = pindexBest->nHeight - pindex->nHeight + 1;
 
 
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
-        if (!tx.CheckTransaction(nDeltaDepth))
+        if (!tx.CheckTransaction())
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
 
     // Check for duplicate txids. This is caught by ConnectInputs(),

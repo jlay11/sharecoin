@@ -377,7 +377,8 @@ public:
 
     int64 GetPresentValue(int nClaimedDepth) const
     {
-    	return nValue*nClaimedDepth;
+    	printf("GetPresentValue: %d\n", nClaimedDepth);
+    	return nValue;
     }
 
 
