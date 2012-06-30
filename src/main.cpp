@@ -470,6 +470,57 @@ bool CTransaction::CheckTransaction() const
     return true;
 }
 
+
+bool CTransaction::CheckTransaction(int nDepth) const
+{
+    // Basic checks that don't depend on any context
+    if (vin.empty())
+        return DoS(10, error("CTransaction::CheckTransaction() : vin empty"));
+    if (vout.empty())
+        return DoS(10, error("CTransaction::CheckTransaction() : vout empty"));
+    // Size limits
+    if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
+        return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
+
+    // Check for negative or overflow output values
+    int64 nValueOut = 0;
+    BOOST_FOREACH(const CTxOut& txout, vout)
+    {
+        if (txout.GetPresentValue(nDepth) < 0)
+            return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue negative"));
+        if (txout.GetPresentValue(nDepth) > MAX_MONEY)
+            return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue too high"));
+        nValueOut += txout.GetPresentValue(nDepth);
+        if (!MoneyRange(nValueOut))
+            return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
+    }
+
+    // Check for duplicate inputs
+    set<COutPoint> vInOutPoints;
+    BOOST_FOREACH(const CTxIn& txin, vin)
+    {
+        if (vInOutPoints.count(txin.prevout))
+            return false;
+        vInOutPoints.insert(txin.prevout);
+    }
+
+    if (IsCoinBase())
+    {
+        if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
+            return DoS(100, error("CTransaction::CheckTransaction() : coinbase script size"));
+    }
+    else
+    {
+        BOOST_FOREACH(const CTxIn& txin, vin)
+            if (txin.prevout.IsNull())
+                return DoS(10, error("CTransaction::CheckTransaction() : prevout is null"));
+    }
+
+    return true;
+}
+
+
+
 bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
                         bool* pfMissingInputs)
 {
@@ -1133,6 +1184,20 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
 
 }
 
+int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nDepth) const
+{
+    if (IsCoinBase())
+        return 0;
+
+    int64 nResult = 0;
+    for (unsigned int i = 0; i < vin.size(); i++)
+    {
+        nResult += GetOutputFor(vin[i], inputs).GetPresentValue(nDepth);
+    }
+    return nResult;
+
+}
+
 unsigned int CTransaction::GetP2SHSigOpCount(const MapPrevTx& inputs) const
 {
     if (IsCoinBase())
@@ -1177,8 +1242,8 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
                         return error("ConnectInputs() : tried to spend coinbase at depth %d", pindexBlock->nHeight - pindex->nHeight);
 
             // Check for negative or overflow input values
-            nValueIn += txPrev.vout[prevout.n].GetPresentValue();
-            if (!MoneyRange(txPrev.vout[prevout.n].GetPresentValue()) || !MoneyRange(nValueIn))
+            nValueIn += txPrev.vout[prevout.n].GetPresentValue(pindexBest->nHeight - pindexBlock->nHeight + 1);
+            if (!MoneyRange(txPrev.vout[prevout.n].GetPresentValue(pindexBest->nHeight - pindexBlock->nHeight + 1)) || !MoneyRange(nValueIn))
                 return DoS(100, error("ConnectInputs() : txin values out of range"));
 
         }
@@ -1701,9 +1766,20 @@ bool CBlock::CheckBlock() const
         if (vtx[i].IsCoinBase())
             return DoS(100, error("CheckBlock() : more than one coinbase"));
 
+	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(GetHash());
+	if (mi == mapBlockIndex.end())
+		return error("CheckBlock() : Block Index contains no blocks??");
+
+	CBlockIndex* pindex = (*mi).second;
+	if (!pindex || !pindex->IsInMainChain())
+		return error("CheckBlock() : invalid block index");
+
+	int nDeltaDepth = pindexBest->nHeight - pindex->nHeight + 1;
+
+
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
-        if (!tx.CheckTransaction())
+        if (!tx.CheckTransaction(nDeltaDepth))
             return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
 
     // Check for duplicate txids. This is caught by ConnectInputs(),
@@ -3531,8 +3607,8 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     //// debug print
     printf("BitcoinMiner:\n");
     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
-    pblock->print();
-    printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].GetPresentValue()).c_str());
+   pblock->print();
+  //  printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str()); (is->this[0].what[0].programming).is()?
 
     // Found a solution
     {

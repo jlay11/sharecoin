@@ -375,6 +375,12 @@ public:
     	return nValue;
     }
 
+    int64 GetPresentValue(int nClaimedDepth) const
+    {
+    	return nValue*nClaimedDepth;
+    }
+
+
     void SetPresentValue(int64 presentValue)
     {
     	nValue = presentValue;
@@ -533,6 +539,20 @@ public:
         return nValueOut;
     }
 
+
+    int64 GetValueOut(int nDepth) const
+    {
+        int64 nValueOut = 0;
+        BOOST_FOREACH(const CTxOut& txout, vout)
+        {
+            nValueOut += txout.GetPresentValue(nDepth);
+            if (!MoneyRange(txout.GetPresentValue(nDepth)) || !MoneyRange(nValueOut))
+                throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
+        }
+        return nValueOut;
+    }
+
+
     /** Amount of bitcoins coming in to this transaction
         Note that lightweight clients may not know anything besides the hash of previous transactions,
         so may not be able to calculate this.
@@ -542,6 +562,7 @@ public:
         @see CTransaction::FetchInputs
      */
     int64 GetValueIn(const MapPrevTx& mapInputs) const;
+    int64 GetValueIn(const MapPrevTx& mapInputs, int nDepth) const;
 
     static bool AllowFree(double dPriority)
     {
@@ -580,7 +601,7 @@ public:
         if (nMinFee < nBaseFee)
         {
             BOOST_FOREACH(const CTxOut& txout, vout)
-                if (txout.GetPresentValue() < CENT)
+                if (txout.GetPresentValue() < CENT) // do we even need "fees?"
                     nMinFee = nBaseFee;
         }
 
@@ -696,6 +717,7 @@ public:
                        const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash=true);
     bool ClientConnectInputs();
     bool CheckTransaction() const;
+    bool CheckTransaction(int nDepth) const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
 
 protected:
