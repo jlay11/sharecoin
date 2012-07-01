@@ -602,7 +602,7 @@ public:
         if (nMinFee < nBaseFee)
         {
             BOOST_FOREACH(const CTxOut& txout, vout)
-                if (txout.GetPresentValue() < CENT) // do we even need "fees?"
+                if (txout.GetPresentValue(0) < CENT) // min tx fee context is calculating fees for a new block, depth is assumed to be zero
                     nMinFee = nBaseFee;
         }
 
@@ -717,6 +717,7 @@ public:
                        std::map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                        const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash=true);
     bool ClientConnectInputs();
+    bool ClientConnectInputs(int nDepth);
     bool CheckTransaction() const;
     bool CheckTransaction(int nDepth) const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);

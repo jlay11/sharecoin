@@ -1672,7 +1672,7 @@ AnyTxToJSON(const uint256 hash, const CTransaction* ptx, Object& entry, const Ob
         int64 nCredit = wtx.GetCredit();
         int64 nDebit = wtx.GetDebit();
         int64 nNet = nCredit - nDebit;
-        int64 nFee = (wtx.IsFromMe() ? wtx.GetValueOut() - nDebit : 0);
+        int64 nFee = (wtx.IsFromMe() ? wtx.GetValueOut(wtx.GetDepthInMainChain()) - nDebit : 0);
 
         entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
         if (wtx.IsFromMe())
