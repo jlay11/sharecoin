@@ -1814,17 +1814,6 @@ bool CBlock::CheckBlock() const
         if (vtx[i].IsCoinBase())
             return DoS(100, error("CheckBlock() : more than one coinbase"));
 
-//	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(GetHash());
-//	if (mi == mapBlockIndex.end())
-//		return error("CheckBlock() : Block not found?? -- Matt ");
-//
-//	CBlockIndex* pindex = (*mi).second;
-//	if (!pindex || !pindex->IsInMainChain())
-//		return error("CheckBlock() : invalid block index");
-//
-//	int nDeltaDepth = pindexBest->nHeight - pindex->nHeight + 1;
-
-
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
         if (!tx.CheckTransaction())
