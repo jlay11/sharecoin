@@ -172,16 +172,28 @@ public:
     }
     int64 GetCredit(const CTxOut& txout) const
     {
-        if (!MoneyRange(txout.nValue))
+        if (!MoneyRange(txout.GetPresentValue()))
             throw std::runtime_error("CWallet::GetCredit() : value out of range");
-        return (IsMine(txout) ? txout.nValue : 0);
+        return (IsMine(txout) ? txout.GetPresentValue() : 0);
+    }
+    int64 GetCredit(const CTxOut& txout, int nDepth) const
+    {
+        if (!MoneyRange(txout.GetPresentValue(nDepth)))
+            throw std::runtime_error("CWallet::GetCredit() : value out of range");
+        return (IsMine(txout) ? txout.GetPresentValue(nDepth) : 0);
     }
     bool IsChange(const CTxOut& txout) const;
     int64 GetChange(const CTxOut& txout) const
     {
-        if (!MoneyRange(txout.nValue))
+        if (!MoneyRange(txout.GetPresentValue()))
             throw std::runtime_error("CWallet::GetChange() : value out of range");
-        return (IsChange(txout) ? txout.nValue : 0);
+        return (IsChange(txout) ? txout.GetPresentValue() : 0);
+    }
+    int64 GetChange(const CTxOut& txout, int nDepth) const
+    {
+        if (!MoneyRange(txout.GetPresentValue(nDepth)))
+            throw std::runtime_error("CWallet::GetChange() : value out of range");
+        return (IsChange(txout) ? txout.GetPresentValue(nDepth) : 0);
     }
     bool IsMine(const CTransaction& tx) const
     {
@@ -216,12 +228,34 @@ public:
         }
         return nCredit;
     }
+    int64 GetCredit(const CTransaction& tx, int nDepth) const
+    {
+        int64 nCredit = 0;
+        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        {
+            nCredit += GetCredit(txout,nDepth);
+            if (!MoneyRange(nCredit))
+                throw std::runtime_error("CWallet::GetCredit() : value out of range");
+        }
+        return nCredit;
+    }
     int64 GetChange(const CTransaction& tx) const
     {
         int64 nChange = 0;
         BOOST_FOREACH(const CTxOut& txout, tx.vout)
         {
             nChange += GetChange(txout);
+            if (!MoneyRange(nChange))
+                throw std::runtime_error("CWallet::GetChange() : value out of range");
+        }
+        return nChange;
+    }
+    int64 GetChange(const CTransaction& tx, int nDepth) const
+    {
+        int64 nChange = 0;
+        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        {
+            nChange += GetChange(txout,nDepth);
             if (!MoneyRange(nChange))
                 throw std::runtime_error("CWallet::GetChange() : value out of range");
         }
@@ -495,7 +529,7 @@ public:
         // GetBalance can assume transactions in mapWallet won't change
         if (fUseCache && fCreditCached)
             return nCreditCached;
-        nCreditCached = pwallet->GetCredit(*this);
+        nCreditCached = pwallet->GetCredit(*this,GetDepthInMainChain());
         fCreditCached = true;
         return nCreditCached;
     }
@@ -515,7 +549,7 @@ public:
             if (!IsSpent(i))
             {
                 const CTxOut &txout = vout[i];
-                nCredit += pwallet->GetCredit(txout);
+                nCredit += pwallet->GetCredit(txout,GetDepthInMainChain());
                 if (!MoneyRange(nCredit))
                     throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
             }
@@ -621,7 +655,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString().substr(0,10).c_str(), i, nDepth, FormatMoney(tx->vout[i].nValue).c_str());
+        return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString().substr(0,10).c_str(), i, nDepth/*, FormatMoney(tx->vout[i].GetPresentValue()).c_str()*/);
     }
 
     void print() const

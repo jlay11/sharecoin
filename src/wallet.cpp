@@ -306,7 +306,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx)
                 CWalletTx& wtx = (*mi).second;
                 if (!wtx.IsSpent(txin.prevout.n) && IsMine(wtx.vout[txin.prevout.n]))
                 {
-                    printf("WalletUpdateSpent found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("WalletUpdateSpent found spent coin %sbc %s\n"/*, FormatMoney(wtx.GetCredit()).c_str()*/, wtx.GetHash().ToString().c_str());
                     wtx.MarkSpent(txin.prevout.n);
                     wtx.WriteToDisk();
                     NotifyTransactionChanged(this, txin.prevout.hash, CT_UPDATED);
@@ -457,7 +457,7 @@ int64 CWallet::GetDebit(const CTxIn &txin) const
             const CWalletTx& prev = (*mi).second;
             if (txin.prevout.n < prev.vout.size())
                 if (IsMine(prev.vout[txin.prevout.n]))
-                    return prev.vout[txin.prevout.n].nValue;
+                    return prev.vout[txin.prevout.n].GetPresentValue(prev.GetDepthInMainChain());
         }
     }
     return 0;
@@ -538,9 +538,9 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     if (IsCoinBase())
     {
         if (GetBlocksToMaturity() > 0)
-            nGeneratedImmature = pwallet->GetCredit(*this);
+            nGeneratedImmature = pwallet->GetCredit(*this,GetDepthInMainChain());
         else
-            nGeneratedMature = GetCredit();
+            nGeneratedMature = GetCredit();  // look into this
         return;
     }
 
@@ -548,7 +548,7 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     int64 nDebit = GetDebit();
     if (nDebit > 0) // debit>0 means we signed/sent this transaction
     {
-        int64 nValueOut = GetValueOut();
+        int64 nValueOut = GetValueOut(GetDepthInMainChain());
         nFee = nDebit - nValueOut;
     }
 
@@ -568,10 +568,10 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
             continue;
 
         if (nDebit > 0)
-            listSent.push_back(make_pair(address, txout.nValue));
+            listSent.push_back(make_pair(address, txout.GetPresentValue(GetDepthInMainChain())));
 
         if (pwallet->IsMine(txout))
-            listReceived.push_back(make_pair(address, txout.nValue));
+            listReceived.push_back(make_pair(address, txout.GetPresentValue(GetDepthInMainChain())));
     }
 
 }
@@ -751,7 +751,7 @@ void CWallet::ReacceptWalletTransactions()
                 }
                 if (fUpdated)
                 {
-                    printf("ReacceptWalletTransactions found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    //printf("ReacceptWalletTransactions found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkDirty();
                     wtx.WriteToDisk();
                 }
@@ -892,7 +892,7 @@ int64 CWallet::GetImmatureBalance() const
         {
             const CWalletTx& pcoin = (*it).second;
             if (pcoin.IsCoinBase() && pcoin.GetBlocksToMaturity() > 0 && pcoin.GetDepthInMainChain() >= 2)
-                nTotal += GetCredit(pcoin);
+                nTotal += GetCredit(pcoin,pcoin.GetDepthInMainChain());
         }
     }
     return nTotal;
@@ -916,7 +916,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins) const
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue > 0)
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].GetPresentValue(pcoin->GetDepthInMainChain()) > 0)
                     vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
         }
     }
@@ -977,13 +977,13 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
 
     BOOST_FOREACH(COutput output, vCoins)
     {
-        const CWalletTx *pcoin = output.tx;
+        const CWalletTx* pcoin = output.tx;
 
         if (output.nDepth < (pcoin->IsFromMe() ? nConfMine : nConfTheirs))
             continue;
 
         int i = output.i;
-        int64 n = pcoin->vout[i].nValue;
+        int64 n = pcoin->vout[i].GetPresentValue(pcoin->GetDepthInMainChain());
 
         pair<int64,pair<const CWalletTx*,unsigned int> > coin = make_pair(n,make_pair(pcoin, i));
 
@@ -1111,7 +1111,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     return false;
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
-                    int64 nCredit = pcoin.first->vout[pcoin.second].nValue;
+                    int64 nCredit = pcoin.first->vout[pcoin.second].GetPresentValue(pcoin.first->GetDepthInMainChain());
                     dPriority += (double)nCredit * pcoin.first->GetDepthInMainChain();
                 }
 
@@ -1353,7 +1353,7 @@ void CWallet::PrintWallet(const CBlock& block)
         if (mapWallet.count(block.vtx[0].GetHash()))
         {
             CWalletTx& wtx = mapWallet[block.vtx[0].GetHash()];
-            printf("    mine:  %d  %d  %d", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
+            printf("    mine:  %d  %d  %d", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity()/*, wtx.GetCredit()*/);
         }
     }
     printf("\n");

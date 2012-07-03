@@ -307,8 +307,11 @@ public:
  */
 class CTxOut
 {
+
+private:
+	int64 nValue;
+
 public:
-    int64 nValue;
     CScript scriptPubKey;
 
     CTxOut()
@@ -365,6 +368,23 @@ public:
     void print() const
     {
         printf("%s\n", ToString().c_str());
+    }
+
+    int64 GetPresentValue() const
+    {
+    	return nValue;
+    }
+
+    int64 GetPresentValue(int nClaimedDepth) const
+    {
+    	printf("GetPresentValue: %d\n", nClaimedDepth);
+    	return nValue;
+    }
+
+
+    void SetPresentValue(int64 presentValue)
+    {
+    	nValue = presentValue;
     }
 };
 
@@ -513,12 +533,26 @@ public:
         int64 nValueOut = 0;
         BOOST_FOREACH(const CTxOut& txout, vout)
         {
-            nValueOut += txout.nValue;
-            if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
+            nValueOut += txout.GetPresentValue();
+            if (!MoneyRange(txout.GetPresentValue()) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
         }
         return nValueOut;
     }
+
+
+    int64 GetValueOut(int nDepth) const
+    {
+        int64 nValueOut = 0;
+        BOOST_FOREACH(const CTxOut& txout, vout)
+        {
+            nValueOut += txout.GetPresentValue(nDepth);
+            if (!MoneyRange(txout.GetPresentValue(nDepth)) || !MoneyRange(nValueOut))
+                throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
+        }
+        return nValueOut;
+    }
+
 
     /** Amount of bitcoins coming in to this transaction
         Note that lightweight clients may not know anything besides the hash of previous transactions,
@@ -529,6 +563,7 @@ public:
         @see CTransaction::FetchInputs
      */
     int64 GetValueIn(const MapPrevTx& mapInputs) const;
+    int64 GetValueIn(const MapPrevTx& mapInputs, int nDepth) const;
 
     static bool AllowFree(double dPriority)
     {
@@ -567,7 +602,7 @@ public:
         if (nMinFee < nBaseFee)
         {
             BOOST_FOREACH(const CTxOut& txout, vout)
-                if (txout.nValue < CENT)
+                if (txout.GetPresentValue(0) < CENT) // min tx fee context is calculating fees for a new block, depth is assumed to be zero
                     nMinFee = nBaseFee;
         }
 
@@ -682,7 +717,9 @@ public:
                        std::map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                        const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash=true);
     bool ClientConnectInputs();
+    bool ClientConnectInputs(int nDepth);
     bool CheckTransaction() const;
+    bool CheckTransaction(int nDepth) const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
 
 protected:
