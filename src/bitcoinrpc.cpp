@@ -287,7 +287,7 @@ void TxToJSON(const CTransaction &tx, Object& entry, const Object& decomposition
     BOOST_FOREACH(const CTxOut& txout, tx.vout)
     {
         Object out;
-        out.push_back(Pair("value", ValueFromAmount(txout.GetPresentValue())));
+        out.push_back(Pair("value", ValueFromAmount(txout.GetPresentValue(0))));
         switch (decomposeScript) {
         case DM_NONE:
             break;
@@ -877,9 +877,11 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
             continue;
 
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
-            if (txout.scriptPubKey == scriptPubKey)
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
-                    nAmount += txout.GetPresentValue();
+            if (txout.scriptPubKey == scriptPubKey) {
+                int nTxDepth = wtx.GetDepthInMainChain();
+                if (nTxDepth >= nMinDepth)
+                    nAmount += txout.GetPresentValue(nTxDepth);
+            }
     }
 
     return  ValueFromAmount(nAmount);
@@ -925,9 +927,11 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
         {
             CTxDestination address;
-            if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address))
-                if (wtx.GetDepthInMainChain() >= nMinDepth)
-                    nAmount += txout.GetPresentValue();
+            if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address)) {
+                int nTxDepth = wtx.GetDepthInMainChain();
+                if (nTxDepth >= nMinDepth)
+                    nAmount += txout.GetPresentValue(nTxDepth);
+            }
         }
     }
 
@@ -1285,7 +1289,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
                 continue;
 
             tallyitem& item = mapTally[address];
-            item.nAmount += txout.GetPresentValue();
+            item.nAmount += txout.GetPresentValue(wtx.GetDepthInMainChain());
             item.nConf = min(item.nConf, nDepth);
         }
     }
@@ -2169,7 +2173,7 @@ Value getmemorypool(const Array& params, bool fHelp)
         result.push_back(Pair("version", pblock->nVersion));
         result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
         result.push_back(Pair("transactions", transactions));
-        result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].GetPresentValue()));
+        result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].GetPresentValue(0)));
         result.push_back(Pair("coinbaseflags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
         result.push_back(Pair("time", (int64_t)pblock->nTime));
         result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));

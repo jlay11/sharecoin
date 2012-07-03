@@ -29,7 +29,7 @@ static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const int64 MIN_TX_FEE = 50000;
 static const int64 MIN_RELAY_TX_FEE = 10000;
-static const int64 MAX_MONEY = 21000000 * COIN;
+static const int64 MAX_MONEY = 1000000000000260000;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 static const int COINBASE_MATURITY = 100;
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -370,21 +370,15 @@ public:
         printf("%s\n", ToString().c_str());
     }
 
-    int64 GetPresentValue() const
-    {
-    	return nValue;
-    }
+    /** Amount of accessible freicoins after discount.
 
-    int64 GetPresentValue(int nClaimedDepth) const
-    {
-    	printf("GetPresentValue: %d\n", nClaimedDepth);
-    	return nValue;
-    }
+        @return	Accessible freicoins after discount
+     */
+    int64 GetPresentValue(int nRelativeDepth) const;
 
-
-    void SetPresentValue(int64 presentValue)
+    void SetInitialValue(int64 nInitialValue)
     {
-    	nValue = presentValue;
+        nValue = nInitialValue;
     }
 };
 
@@ -528,31 +522,18 @@ public:
     /** Amount of bitcoins spent by this transaction.
         @return sum of all outputs (note: does not include fees)
      */
-    int64 GetValueOut() const
+    int64 GetValueOut(int nRelativeDepth) const
     {
-        int64 nValueOut = 0;
+        int64 nValueOut = 0, nPresentValue;
         BOOST_FOREACH(const CTxOut& txout, vout)
         {
-            nValueOut += txout.GetPresentValue();
-            if (!MoneyRange(txout.GetPresentValue()) || !MoneyRange(nValueOut))
+            nPresentValue = txout.GetPresentValue(nRelativeDepth);
+            nValueOut += nPresentValue;
+            if (!MoneyRange(nPresentValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
         }
         return nValueOut;
     }
-
-
-    int64 GetValueOut(int nDepth) const
-    {
-        int64 nValueOut = 0;
-        BOOST_FOREACH(const CTxOut& txout, vout)
-        {
-            nValueOut += txout.GetPresentValue(nDepth);
-            if (!MoneyRange(txout.GetPresentValue(nDepth)) || !MoneyRange(nValueOut))
-                throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
-        }
-        return nValueOut;
-    }
-
 
     /** Amount of bitcoins coming in to this transaction
         Note that lightweight clients may not know anything besides the hash of previous transactions,
@@ -562,8 +543,7 @@ public:
         @return	Sum of value of all inputs (scriptSigs)
         @see CTransaction::FetchInputs
      */
-    int64 GetValueIn(const MapPrevTx& mapInputs) const;
-    int64 GetValueIn(const MapPrevTx& mapInputs, int nDepth) const;
+    int64 GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const;
 
     static bool AllowFree(double dPriority)
     {
@@ -716,10 +696,8 @@ public:
     bool ConnectInputs(MapPrevTx inputs,
                        std::map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx,
                        const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, bool fStrictPayToScriptHash=true);
-    bool ClientConnectInputs();
-    bool ClientConnectInputs(int nDepth);
+    bool ClientConnectInputs(CTxDB& txdb, int nBlockHeight);
     bool CheckTransaction() const;
-    bool CheckTransaction(int nDepth) const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
 
 protected:
