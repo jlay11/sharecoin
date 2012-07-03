@@ -49,7 +49,7 @@ map<uint256, map<uint256, CDataStream*> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Bitcoin Signed Message:\n";
+const string strMessageMagic = "Freicoin Signed Message:\n";
 
 double dHashesPerSec;
 int64 nHPSTimerStart;
@@ -1194,7 +1194,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
 {
     // Take over previous transactions' spent pointers
     // fBlock is true when this is called from AcceptBlock when a new best-block is added to the blockchain
-    // fMiner is true when called from the internal bitcoin miner
+    // fMiner is true when called from the internal freicoin miner
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
@@ -1928,7 +1928,7 @@ bool CheckDiskSpace(uint64 nAdditionalBytes)
         string strMessage = _("Warning: Disk space is low");
         strMiscWarning = strMessage;
         printf("*** %s\n", strMessage.c_str());
-        uiInterface.ThreadSafeMessageBox(strMessage, "Bitcoin", CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+        uiInterface.ThreadSafeMessageBox(strMessage, "Freicoin", CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
         StartShutdown();
         return false;
     }
@@ -3242,7 +3242,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// BitcoinMiner
+// FreicoinMiner
 //
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
@@ -3584,7 +3584,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         return false;
 
     //// debug print
-    printf("BitcoinMiner:\n");
+    printf("FreicoinMiner:\n");
     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
     pblock->print();
     printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].GetPresentValue(0)).c_str());
@@ -3593,7 +3593,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
-            return error("BitcoinMiner : generated block is stale");
+            return error("FreicoinMiner : generated block is stale");
 
         // Remove key from key pool
         reservekey.KeepKey();
@@ -3606,28 +3606,28 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
-            return error("BitcoinMiner : ProcessBlock, block not accepted");
+            return error("FreicoinMiner : ProcessBlock, block not accepted");
     }
 
     return true;
 }
 
-void static ThreadBitcoinMiner(void* parg);
+void static ThreadFreicoinMiner(void* parg);
 
-static bool fGenerateBitcoins = false;
+static bool fGenerateFreicoins = false;
 static bool fLimitProcessors = false;
 static int nLimitProcessors = -1;
 
-void static BitcoinMiner(CWallet *pwallet)
+void static FreicoinMiner(CWallet *pwallet)
 {
-    printf("BitcoinMiner started\n");
+    printf("FreicoinMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
 
-    while (fGenerateBitcoins)
+    while (fGenerateFreicoins)
     {
         if (fShutdown)
             return;
@@ -3636,7 +3636,7 @@ void static BitcoinMiner(CWallet *pwallet)
             Sleep(1000);
             if (fShutdown)
                 return;
-            if (!fGenerateBitcoins)
+            if (!fGenerateFreicoins)
                 return;
         }
 
@@ -3652,7 +3652,7 @@ void static BitcoinMiner(CWallet *pwallet)
             return;
         IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
 
-        printf("Running BitcoinMiner with %d transactions in block\n", pblock->vtx.size());
+        printf("Running FreicoinMiner with %d transactions in block\n", pblock->vtx.size());
 
 
         //
@@ -3736,7 +3736,7 @@ void static BitcoinMiner(CWallet *pwallet)
             // Check for stop or if block needs to be rebuilt
             if (fShutdown)
                 return;
-            if (!fGenerateBitcoins)
+            if (!fGenerateFreicoins)
                 return;
             if (fLimitProcessors && vnThreadsRunning[THREAD_MINER] > nLimitProcessors)
                 return;
@@ -3762,35 +3762,35 @@ void static BitcoinMiner(CWallet *pwallet)
     }
 }
 
-void static ThreadBitcoinMiner(void* parg)
+void static ThreadFreicoinMiner(void* parg)
 {
     CWallet* pwallet = (CWallet*)parg;
     try
     {
         vnThreadsRunning[THREAD_MINER]++;
-        BitcoinMiner(pwallet);
+        FreicoinMiner(pwallet);
         vnThreadsRunning[THREAD_MINER]--;
     }
     catch (std::exception& e) {
         vnThreadsRunning[THREAD_MINER]--;
-        PrintException(&e, "ThreadBitcoinMiner()");
+        PrintException(&e, "ThreadFreicoinMiner()");
     } catch (...) {
         vnThreadsRunning[THREAD_MINER]--;
-        PrintException(NULL, "ThreadBitcoinMiner()");
+        PrintException(NULL, "ThreadFreicoinMiner()");
     }
     nHPSTimerStart = 0;
     if (vnThreadsRunning[THREAD_MINER] == 0)
         dHashesPerSec = 0;
-    printf("ThreadBitcoinMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
+    printf("ThreadFreicoinMiner exiting, %d threads remaining\n", vnThreadsRunning[THREAD_MINER]);
 }
 
 
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
+void GenerateFreicoins(bool fGenerate, CWallet* pwallet)
 {
-    fGenerateBitcoins = fGenerate;
+    fGenerateFreicoins = fGenerate;
     nLimitProcessors = GetArg("-genproclimit", -1);
     if (nLimitProcessors == 0)
-        fGenerateBitcoins = false;
+        fGenerateFreicoins = false;
     fLimitProcessors = (nLimitProcessors != -1);
 
     if (fGenerate)
@@ -3802,11 +3802,11 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
         if (fLimitProcessors && nProcessors > nLimitProcessors)
             nProcessors = nLimitProcessors;
         int nAddThreads = nProcessors - vnThreadsRunning[THREAD_MINER];
-        printf("Starting %d BitcoinMiner threads\n", nAddThreads);
+        printf("Starting %d FreicoinMiner threads\n", nAddThreads);
         for (int i = 0; i < nAddThreads; i++)
         {
-            if (!CreateThread(ThreadBitcoinMiner, pwallet))
-                printf("Error: CreateThread(ThreadBitcoinMiner) failed\n");
+            if (!CreateThread(ThreadFreicoinMiner, pwallet))
+                printf("Error: CreateThread(ThreadFreicoinMiner) failed\n");
             Sleep(10);
         }
     }

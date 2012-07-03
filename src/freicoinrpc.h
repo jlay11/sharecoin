@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _BITCOINRPC_H_
-#define _BITCOINRPC_H_ 1
+#ifndef _FREICOINRPC_H_
+#define _FREICOINRPC_H_ 1
 
 #include <string>
 #include <map>
@@ -32,7 +32,7 @@ public:
 };
 
 /**
- * Bitcoin RPC command dispatcher.
+ * Freicoin RPC command dispatcher.
  */
 class CRPCTable
 {

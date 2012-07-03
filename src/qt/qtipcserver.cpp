@@ -17,7 +17,7 @@ using namespace std;
 
 void ipcShutdown()
 {
-    message_queue::remove(BITCOINURI_QUEUE_NAME);
+    message_queue::remove(FREICOINURI_QUEUE_NAME);
 }
 
 void ipcThread(void* parg)
@@ -46,7 +46,7 @@ void ipcThread(void* parg)
 void ipcInit()
 {
 #ifdef MAC_OSX
-    // TODO: implement bitcoin: URI handling the Mac Way
+    // TODO: implement freicoin: URI handling the Mac Way
     return;
 #endif
 #ifdef WIN32
@@ -61,9 +61,9 @@ void ipcInit()
     size_t nSize;
     unsigned int nPriority;
     try {
-        mq = new message_queue(open_or_create, BITCOINURI_QUEUE_NAME, 2, 256);
+        mq = new message_queue(open_or_create, FREICOINURI_QUEUE_NAME, 2, 256);
 
-        // Make sure we don't lose any bitcoin: URIs
+        // Make sure we don't lose any freicoin: URIs
         for (int i = 0; i < 2; i++)
         {
             ptime d = boost::posix_time::microsec_clock::universal_time() + millisec(1);
@@ -75,9 +75,9 @@ void ipcInit()
                 break;
         }
 
-        // Make sure only one bitcoin instance is listening
-        message_queue::remove(BITCOINURI_QUEUE_NAME);
-        mq = new message_queue(open_or_create, BITCOINURI_QUEUE_NAME, 2, 256);
+        // Make sure only one freicoin instance is listening
+        message_queue::remove(FREICOINURI_QUEUE_NAME);
+        mq = new message_queue(open_or_create, FREICOINURI_QUEUE_NAME, 2, 256);
     }
     catch (interprocess_exception &ex) {
         return;

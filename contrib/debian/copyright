@@ -1,15 +1,18 @@
 Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?rev=174
-Upstream-Name: Bitcoin
+Upstream-Name: Freicoin
 Upstream-Contact: Satoshi Nakamoto <satoshin@gmx.com>
- irc://#bitcoin@freenode.net
-Source: http://sourceforge.net/projects/bitcoin/files/
- https://github.com/bitcoin/bitcoin
+ irc://#freicoin@freenode.net
+Source: http://sourceforge.net/projects/freicoin/files/
+ https://github.com/freicoin/freicoin
 
 Files: *
 Copyright: 2009-2011, Bitcoin Developers
+           2012, Freicoin Developers
 License: Expat
 Comment: The Bitcoin Developers encompasses the current developers listed on bitcoin.org,
-         as well as the numerous contributors to the project.
+         as well as the numerous contributors to that project. The Bitcoin Developers
+         encompasses the current developers listed on bitcoin.org, as well as its own
+         contributors.
 
 Files: src/json/*
 Copyright: 2007-2009, John W. Wilkinson
@@ -67,7 +70,7 @@ Copyright: http://www.everaldo.com
 License: LGPL
 Comment: Icon Pack: Crystal SVG
 
-Files: src/qt/res/icons/bitcoin.png, src/qt/res/icons/toolbar.png
+Files: src/qt/res/icons/freicoin.png, src/qt/res/icons/toolbar.png
 Copyright: Bitboy (optimized for 16x16 by Wladimir van der Laan)
 License: PUB-DOM
 Comment: Site: http://forum.bitcoin.org/?topic=1756.0

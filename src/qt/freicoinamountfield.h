@@ -1,5 +1,5 @@
-#ifndef BITCOINFIELD_H
-#define BITCOINFIELD_H
+#ifndef FREICOINFIELD_H
+#define FREICOINFIELD_H
 
 #include <QWidget>
 
@@ -8,14 +8,14 @@ class QDoubleSpinBox;
 class QValueComboBox;
 QT_END_NAMESPACE
 
-/** Widget for entering bitcoin amounts.
+/** Widget for entering freicoin amounts.
   */
-class BitcoinAmountField: public QWidget
+class FreicoinAmountField: public QWidget
 {
     Q_OBJECT
     Q_PROPERTY(qint64 value READ value WRITE setValue NOTIFY textChanged USER true)
 public:
-    explicit BitcoinAmountField(QWidget *parent = 0);
+    explicit FreicoinAmountField(QWidget *parent = 0);
 
     qint64 value(bool *valid=0) const;
     void setValue(qint64 value);
@@ -57,4 +57,4 @@ private slots:
 };
 
 
-#endif // BITCOINFIELD_H
+#endif // FREICOINFIELD_H

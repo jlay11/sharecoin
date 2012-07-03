@@ -55,7 +55,7 @@ OBJS= \
     obj/main.o \
     obj/net.o \
     obj/protocol.o \
-    obj/bitcoinrpc.o \
+    obj/freicoinrpc.o \
     obj/rpcdump.o \
     obj/rpcnet.o \
     obj/script.o \
@@ -66,12 +66,12 @@ OBJS= \
     obj/noui.o
 
 
-all: bitcoind.exe
+all: freicoind.exe
 
 obj/%.o: %.cpp $(HEADERS)
 	g++ -c $(CFLAGS) -o $@ $<
 
-bitcoind.exe: $(OBJS:obj/%=obj/%)
+freicoind.exe: $(OBJS:obj/%=obj/%)
 	g++ $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -79,11 +79,11 @@ TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 obj-test/%.o: test/%.cpp $(HEADERS)
 	g++ -c $(TESTDEFS) $(CFLAGS) -o $@ $<
 
-test_bitcoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_freicoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	g++ $(CFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework $(LIBS)
 
 clean:
-	-del /Q bitcoind test_bitcoin
+	-del /Q freicoind test_freicoin
 	-del /Q obj\*
 	-del /Q obj-test\*
 	-del /Q build.h

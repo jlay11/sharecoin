@@ -2,8 +2,8 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_WALLETDB_H
-#define BITCOIN_WALLETDB_H
+#ifndef FREICOIN_WALLETDB_H
+#define FREICOIN_WALLETDB_H
 
 #include "db.h"
 #include "base58.h"
@@ -177,4 +177,4 @@ public:
     int LoadWallet(CWallet* pwallet);
 };
 
-#endif // BITCOIN_WALLETDB_H
+#endif // FREICOIN_WALLETDB_H

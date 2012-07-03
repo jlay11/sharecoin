@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="labelExplanation">
      <property name="text">
-      <string>These are your Bitcoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</string>
+      <string>These are your Freicoin addresses for receiving payments.  You may want to give a different one to each sender so you can keep track of who is paying you.</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
@@ -66,7 +66,7 @@
         <string>&amp;New Address</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
        </property>
       </widget>
@@ -80,7 +80,7 @@
         <string>&amp;Copy Address</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
        </property>
       </widget>
@@ -91,7 +91,7 @@
         <string>Show &amp;QR Code</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/qrcode</normaloff>:/icons/qrcode</iconset>
        </property>
       </widget>
@@ -105,7 +105,7 @@
         <string>&amp;Sign Message</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/edit</normaloff>:/icons/edit</iconset>
        </property>
       </widget>
@@ -119,7 +119,7 @@
         <string>&amp;Delete</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
       </widget>
@@ -155,7 +155,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../bitcoin.qrc"/>
+  <include location="../freicoin.qrc"/>
  </resources>
  <connections/>
 </ui>

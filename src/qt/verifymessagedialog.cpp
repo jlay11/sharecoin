@@ -24,14 +24,14 @@ VerifyMessageDialog::VerifyMessageDialog(QWidget *parent) :
 
 #if (QT_VERSION >= 0x040700)
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->lnAddress->setPlaceholderText(tr("Enter a Bitcoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
-    ui->lnSig->setPlaceholderText(tr("Enter Bitcoin signature"));
+    ui->lnAddress->setPlaceholderText(tr("Enter a Freicoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
+    ui->lnSig->setPlaceholderText(tr("Enter Freicoin signature"));
 #endif
 
     GUIUtil::setupAddressWidget(ui->lnAddress, this);
     ui->lnAddress->installEventFilter(this);
 
-    ui->lnSig->setFont(GUIUtil::bitcoinAddressFont());
+    ui->lnSig->setFont(GUIUtil::freicoinAddressFont());
 
     ui->lnAddress->setFocus();
 }
@@ -43,7 +43,7 @@ VerifyMessageDialog::~VerifyMessageDialog()
 
 void VerifyMessageDialog::on_verifyMessage_clicked()
 {
-    CBitcoinAddress addr(ui->lnAddress->text().toStdString());
+    CFreicoinAddress addr(ui->lnAddress->text().toStdString());
     if (!addr.IsValid())
     {
         ui->lnAddress->setValid(false);
@@ -84,7 +84,7 @@ void VerifyMessageDialog::on_verifyMessage_clicked()
         return;
     }
 
-    if (!(CBitcoinAddress(key.GetPubKey().GetID()) == addr))
+    if (!(CFreicoinAddress(key.GetPubKey().GetID()) == addr))
     {
         ui->lblStatus->setStyleSheet("QLabel { color: red; }");
         ui->lblStatus->setText(QString("<nobr>") + tr("Message verification failed.") + QString("</nobr>"));

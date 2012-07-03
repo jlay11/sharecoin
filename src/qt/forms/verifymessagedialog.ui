@@ -49,13 +49,13 @@
      <item>
       <widget class="QPushButton" name="verifyMessage">
        <property name="toolTip">
-        <string>Verify a message to ensure it was signed with the specified Bitcoin address</string>
+        <string>Verify a message to ensure it was signed with the specified Freicoin address</string>
        </property>
        <property name="text">
         <string>&amp;Verify Message</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
        </property>
       </widget>
@@ -69,7 +69,7 @@
         <string>Clear &amp;All</string>
        </property>
        <property name="icon">
-        <iconset resource="../bitcoin.qrc">
+        <iconset resource="../freicoin.qrc">
          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
       </widget>
@@ -134,7 +134,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../bitcoin.qrc"/>
+  <include location="../freicoin.qrc"/>
  </resources>
  <connections/>
 </ui>

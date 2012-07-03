@@ -1,7 +1,7 @@
 #include "transactiondesc.h"
 
 #include "guiutil.h"
-#include "bitcoinunits.h"
+#include "freicoinunits.h"
 
 #include "main.h"
 #include "wallet.h"
@@ -93,7 +93,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                             {
                                 strHTML += tr("<b>From:</b> ") + tr("unknown") + "<br>";
                                 strHTML += tr("<b>To:</b> ");
-                                strHTML += GUIUtil::HtmlEscape(CBitcoinAddress(address).ToString());
+                                strHTML += GUIUtil::HtmlEscape(CFreicoinAddress(address).ToString());
                                 if (!wallet->mapAddressBook[address].empty())
                                     strHTML += tr(" (yours, label: ") + GUIUtil::HtmlEscape(wallet->mapAddressBook[address]) + ")";
                                 else
@@ -116,7 +116,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             // Online transaction
             strAddress = wtx.mapValue["to"];
             strHTML += tr("<b>To:</b> ");
-            CTxDestination dest = CBitcoinAddress(strAddress).Get();
+            CTxDestination dest = CFreicoinAddress(strAddress).Get();
             if (wallet->mapAddressBook.count(dest) && !wallet->mapAddressBook[dest].empty())
                 strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[dest]) + " ";
             strHTML += GUIUtil::HtmlEscape(strAddress) + "<br>";
@@ -136,7 +136,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             strHTML += tr("<b>Credit:</b> ");
             if (wtx.IsInMainChain())
                 strHTML += tr("(%1 matures in %2 more blocks)")
-                        .arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nUnmatured))
+                        .arg(FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, nUnmatured))
                         .arg(wtx.GetBlocksToMaturity());
             else
                 strHTML += tr("(not accepted)");
@@ -147,7 +147,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             //
             // Credit
             //
-            strHTML += tr("<b>Credit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nNet) + "<br>";
+            strHTML += tr("<b>Credit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, nNet) + "<br>";
         }
         else
         {
@@ -178,12 +178,12 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                             strHTML += tr("<b>To:</b> ");
                             if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].empty())
                                 strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address]) + " ";
-                            strHTML += GUIUtil::HtmlEscape(CBitcoinAddress(address).ToString());
+                            strHTML += GUIUtil::HtmlEscape(CFreicoinAddress(address).ToString());
                             strHTML += "<br>";
                         }
                     }
 
-                    strHTML += tr("<b>Debit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, -txout.GetPresentValue(wtx.GetDepthInMainChain())) + "<br>";
+                    strHTML += tr("<b>Debit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, -txout.GetPresentValue(wtx.GetDepthInMainChain())) + "<br>";
                 }
 
                 if (fAllToMe)
@@ -191,13 +191,13 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                     // Payment to self
                     int64 nChange = wtx.GetChange();
                     int64 nValue = nCredit - nChange;
-                    strHTML += tr("<b>Debit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, -nValue) + "<br>";
-                    strHTML += tr("<b>Credit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nValue) + "<br>";
+                    strHTML += tr("<b>Debit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, -nValue) + "<br>";
+                    strHTML += tr("<b>Credit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, nValue) + "<br>";
                 }
 
                 int64 nTxFee = nDebit - wtx.GetValueOut(wtx.GetDepthInMainChain());
                 if (nTxFee > 0)
-                    strHTML += tr("<b>Transaction fee:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,-nTxFee) + "<br>";
+                    strHTML += tr("<b>Transaction fee:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,-nTxFee) + "<br>";
             }
             else
             {
@@ -206,14 +206,14 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                 //
                 BOOST_FOREACH(const CTxIn& txin, wtx.vin)
                     if (wallet->IsMine(txin))
-                        strHTML += tr("<b>Debit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,-wallet->GetDebit(txin)) + "<br>";
+                        strHTML += tr("<b>Debit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,-wallet->GetDebit(txin)) + "<br>";
                 BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                     if (wallet->IsMine(txout))
-                        strHTML += tr("<b>Credit:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,wallet->GetCredit(txout)) + "<br>";
+                        strHTML += tr("<b>Credit:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,wallet->GetCredit(txout)) + "<br>";
             }
         }
 
-        strHTML += tr("<b>Net amount:</b> ") + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,nNet, true) + "<br>";
+        strHTML += tr("<b>Net amount:</b> ") + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,nNet, true) + "<br>";
 
         //
         // Message
@@ -236,10 +236,10 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             strHTML += "<hr><br>Debug information<br><br>";
             BOOST_FOREACH(const CTxIn& txin, wtx.vin)
                 if(wallet->IsMine(txin))
-                    strHTML += "<b>Debit:</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,-wallet->GetDebit(txin)) + "<br>";
+                    strHTML += "<b>Debit:</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,-wallet->GetDebit(txin)) + "<br>";
             BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                 if(wallet->IsMine(txout))
-                    strHTML += "<b>Credit:</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,wallet->GetCredit(txout)) + "<br>";
+                    strHTML += "<b>Credit:</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,wallet->GetCredit(txout)) + "<br>";
 
             strHTML += "<br><b>Transaction:</b><br>";
             strHTML += GUIUtil::HtmlEscape(wtx.ToString(), true);
@@ -267,9 +267,9 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                             {
                                 if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].empty())
                                     strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address]) + " ";
-                                strHTML += QString::fromStdString(CBitcoinAddress(address).ToString());
+                                strHTML += QString::fromStdString(CFreicoinAddress(address).ToString());
                             }
-                            strHTML = strHTML + " Amount=" + BitcoinUnits::formatWithUnit(BitcoinUnits::BTC,vout.GetPresentValue(wtx.GetDepthInMainChain()));
+                            strHTML = strHTML + " Amount=" + FreicoinUnits::formatWithUnit(FreicoinUnits::BTC,vout.GetPresentValue(wtx.GetDepthInMainChain()));
                             strHTML = strHTML + " IsMine=" + (wallet->IsMine(vout) ? "true" : "false") + "</li>";
                         }
                     }

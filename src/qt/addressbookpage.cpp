@@ -2,7 +2,7 @@
 #include "ui_addressbookpage.h"
 
 #include "addresstablemodel.h"
-#include "bitcoingui.h"
+#include "freicoingui.h"
 #include "editaddressdialog.h"
 #include "csvmodelwriter.h"
 #include "guiutil.h"
@@ -180,7 +180,7 @@ void AddressBookPage::on_signMessage_clicked()
     }
 
     QObject *qoGUI = parent()->parent();
-    BitcoinGUI *gui = qobject_cast<BitcoinGUI *>(qoGUI);
+    FreicoinGUI *gui = qobject_cast<FreicoinGUI *>(qoGUI);
     if (gui)
         gui->gotoMessagePage(addr);
 }

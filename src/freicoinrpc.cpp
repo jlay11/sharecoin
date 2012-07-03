@@ -11,7 +11,7 @@
 #include "init.h"
 #include "ui_interface.h"
 #include "base58.h"
-#include "bitcoinrpc.h"
+#include "freicoinrpc.h"
 
 #undef printf
 #include <boost/asio.hpp>
@@ -210,7 +210,7 @@ ScriptSigToJSON(const CTxIn& txin, Object& out)
 
     Array a;
     BOOST_FOREACH(const CTxDestination& addr, addresses)
-        a.push_back(CBitcoinAddress(addr).ToString());
+        a.push_back(CFreicoinAddress(addr).ToString());
     out.push_back(Pair("addresses", a));
 }
 
@@ -235,7 +235,7 @@ ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out)
 
     Array a;
     BOOST_FOREACH(const CTxDestination& addr, addresses)
-        a.push_back(CBitcoinAddress(addr).ToString());
+        a.push_back(CFreicoinAddress(addr).ToString());
     out.push_back(Pair("addresses", a));
 }
 
@@ -440,10 +440,10 @@ Value stop(const Array& params, bool fHelp)
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "stop\n"
-            "Stop Bitcoin server.");
+            "Stop Freicoin server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "Bitcoin server stopping";
+    return "Freicoin server stopping";
 }
 
 
@@ -501,7 +501,7 @@ Value setgenerate(const Array& params, bool fHelp)
     }
     mapArgs["-gen"] = (fGenerate ? "1" : "0");
 
-    GenerateBitcoins(fGenerate, pwalletMain);
+    GenerateFreicoins(fGenerate, pwalletMain);
     return Value::null;
 }
 
@@ -576,7 +576,7 @@ Value getnewaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "getnewaddress [account]\n"
-            "Returns a new Bitcoin address for receiving payments.  "
+            "Returns a new Freicoin address for receiving payments.  "
             "If [account] is specified (recommended), it is added to the address book "
             "so payments received with the address will be credited to [account].");
 
@@ -596,11 +596,11 @@ Value getnewaddress(const Array& params, bool fHelp)
 
     pwalletMain->SetAddressBookName(keyID, strAccount);
 
-    return CBitcoinAddress(keyID).ToString();
+    return CFreicoinAddress(keyID).ToString();
 }
 
 
-CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
+CFreicoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
 {
     CWalletDB walletdb(pwalletMain->strWalletFile);
 
@@ -635,7 +635,7 @@ CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
         walletdb.WriteAccount(strAccount, account);
     }
 
-    return CBitcoinAddress(account.vchPubKey.GetID());
+    return CFreicoinAddress(account.vchPubKey.GetID());
 }
 
 Value getaccountaddress(const Array& params, bool fHelp)
@@ -643,7 +643,7 @@ Value getaccountaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() != 1)
         throw runtime_error(
             "getaccountaddress <account>\n"
-            "Returns the current Bitcoin address for receiving payments to this account.");
+            "Returns the current Freicoin address for receiving payments to this account.");
 
     // Parse the account first so we don't generate a key if there's an error
     string strAccount = AccountFromValue(params[0]);
@@ -661,12 +661,12 @@ Value setaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "setaccount <bitcoinaddress> <account>\n"
+            "setaccount <freicoinaddress> <account>\n"
             "Sets the account associated with the given address.");
 
-    CBitcoinAddress address(params[0].get_str());
+    CFreicoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid Bitcoin address");
+        throw JSONRPCError(-5, "Invalid Freicoin address");
 
 
     string strAccount;
@@ -691,12 +691,12 @@ Value getaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getaccount <bitcoinaddress>\n"
+            "getaccount <freicoinaddress>\n"
             "Returns the account associated with the given address.");
 
-    CBitcoinAddress address(params[0].get_str());
+    CFreicoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid Bitcoin address");
+        throw JSONRPCError(-5, "Invalid Freicoin address");
 
     string strAccount;
     map<CTxDestination, string>::iterator mi = pwalletMain->mapAddressBook.find(address.Get());
@@ -717,9 +717,9 @@ Value getaddressesbyaccount(const Array& params, bool fHelp)
 
     // Find all addresses that have the given account
     Array ret;
-    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, string)& item, pwalletMain->mapAddressBook)
+    BOOST_FOREACH(const PAIRTYPE(CFreicoinAddress, string)& item, pwalletMain->mapAddressBook)
     {
-        const CBitcoinAddress& address = item.first;
+        const CFreicoinAddress& address = item.first;
         const string& strName = item.second;
         if (strName == strAccount)
             ret.push_back(address.ToString());
@@ -747,13 +747,13 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
         throw runtime_error(
-            "sendtoaddress <bitcoinaddress> <amount> [comment] [comment-to]\n"
+            "sendtoaddress <freicoinaddress> <amount> [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.00000001"
             + HelpRequiringPassphrase());
 
-    CBitcoinAddress address(params[0].get_str());
+    CFreicoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid Bitcoin address");
+        throw JSONRPCError(-5, "Invalid Freicoin address");
 
     // Amount
     int64 nAmount = AmountFromValue(params[1]);
@@ -779,7 +779,7 @@ Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "signmessage <bitcoinaddress> <message>\n"
+            "signmessage <freicoinaddress> <message>\n"
             "Sign a message with the private key of an address");
 
     EnsureWalletIsUnlocked();
@@ -787,7 +787,7 @@ Value signmessage(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
-    CBitcoinAddress addr(strAddress);
+    CFreicoinAddress addr(strAddress);
     if (!addr.IsValid())
         throw JSONRPCError(-3, "Invalid address");
 
@@ -814,14 +814,14 @@ Value verifymessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-            "verifymessage <bitcoinaddress> <signature> <message>\n"
+            "verifymessage <freicoinaddress> <signature> <message>\n"
             "Verify a signed message");
 
     string strAddress  = params[0].get_str();
     string strSign     = params[1].get_str();
     string strMessage  = params[2].get_str();
 
-    CBitcoinAddress addr(strAddress);
+    CFreicoinAddress addr(strAddress);
     if (!addr.IsValid())
         throw JSONRPCError(-3, "Invalid address");
 
@@ -851,14 +851,14 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getreceivedbyaddress <bitcoinaddress> [minconf=1]\n"
-            "Returns the total amount received by <bitcoinaddress> in transactions with at least [minconf] confirmations.");
+            "getreceivedbyaddress <freicoinaddress> [minconf=1]\n"
+            "Returns the total amount received by <freicoinaddress> in transactions with at least [minconf] confirmations.");
 
-    // Bitcoin address
-    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    // Freicoin address
+    CFreicoinAddress address = CFreicoinAddress(params[0].get_str());
     CScript scriptPubKey;
     if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid Bitcoin address");
+        throw JSONRPCError(-5, "Invalid Freicoin address");
     scriptPubKey.SetDestination(address.Get());
     if (!IsMine(*pwalletMain,scriptPubKey))
         return (double)0.0;
@@ -1076,14 +1076,14 @@ Value sendfrom(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw runtime_error(
-            "sendfrom <fromaccount> <tobitcoinaddress> <amount> [minconf=1] [comment] [comment-to]\n"
+            "sendfrom <fromaccount> <tofreicoinaddress> <amount> [minconf=1] [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.00000001"
             + HelpRequiringPassphrase());
 
     string strAccount = AccountFromValue(params[0]);
-    CBitcoinAddress address(params[1].get_str());
+    CFreicoinAddress address(params[1].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(-5, "Invalid Bitcoin address");
+        throw JSONRPCError(-5, "Invalid Freicoin address");
     int64 nAmount = AmountFromValue(params[2]);
     int nMinDepth = 1;
     if (params.size() > 3)
@@ -1131,15 +1131,15 @@ Value sendmany(const Array& params, bool fHelp)
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         wtx.mapValue["comment"] = params[3].get_str();
 
-    set<CBitcoinAddress> setAddress;
+    set<CFreicoinAddress> setAddress;
     vector<pair<CScript, int64> > vecSend;
 
     int64 totalAmount = 0;
     BOOST_FOREACH(const Pair& s, sendTo)
     {
-        CBitcoinAddress address(s.name_);
+        CFreicoinAddress address(s.name_);
         if (!address.IsValid())
-            throw JSONRPCError(-5, string("Invalid Bitcoin address:")+s.name_);
+            throw JSONRPCError(-5, string("Invalid Freicoin address:")+s.name_);
 
         if (setAddress.count(address))
             throw JSONRPCError(-8, string("Invalid parameter, duplicated address: ")+s.name_);
@@ -1182,7 +1182,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     {
         string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
             "Add a nrequired-to-sign multisignature address to the wallet\"\n"
-            "each key is a Bitcoin address or hex-encoded public key\n"
+            "each key is a Freicoin address or hex-encoded public key\n"
             "If [account] is specified, assign address to [account].";
         throw runtime_error(msg);
     }
@@ -1206,8 +1206,8 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     {
         const std::string& ks = keys[i].get_str();
 
-        // Case 1: Bitcoin address and we have full public key:
-        CBitcoinAddress address(ks);
+        // Case 1: Freicoin address and we have full public key:
+        CFreicoinAddress address(ks);
         if (address.IsValid())
         {
             CKeyID keyID;
@@ -1242,7 +1242,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     pwalletMain->AddCScript(inner);
 
     pwalletMain->SetAddressBookName(innerID, strAccount);
-    return CBitcoinAddress(innerID).ToString();
+    return CFreicoinAddress(innerID).ToString();
 }
 
 
@@ -1270,7 +1270,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
         fIncludeEmpty = params[1].get_bool();
 
     // Tally
-    map<CBitcoinAddress, tallyitem> mapTally;
+    map<CFreicoinAddress, tallyitem> mapTally;
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
     {
         const CWalletTx& wtx = (*it).second;
@@ -1297,11 +1297,11 @@ Value ListReceived(const Array& params, bool fByAccounts)
     // Reply
     Array ret;
     map<string, tallyitem> mapAccountTally;
-    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, string)& item, pwalletMain->mapAddressBook)
+    BOOST_FOREACH(const PAIRTYPE(CFreicoinAddress, string)& item, pwalletMain->mapAddressBook)
     {
-        const CBitcoinAddress& address = item.first;
+        const CFreicoinAddress& address = item.first;
         const string& strAccount = item.second;
-        map<CBitcoinAddress, tallyitem>::iterator it = mapTally.find(address);
+        map<CFreicoinAddress, tallyitem>::iterator it = mapTally.find(address);
         if (it == mapTally.end() && !fIncludeEmpty)
             continue;
 
@@ -1416,7 +1416,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
         {
             Object entry;
             entry.push_back(Pair("account", strSentAccount));
-            entry.push_back(Pair("address", CBitcoinAddress(s.first).ToString()));
+            entry.push_back(Pair("address", CFreicoinAddress(s.first).ToString()));
             entry.push_back(Pair("category", "send"));
             entry.push_back(Pair("amount", ValueFromAmount(-s.second)));
             entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
@@ -1438,7 +1438,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
             {
                 Object entry;
                 entry.push_back(Pair("account", account));
-                entry.push_back(Pair("address", CBitcoinAddress(r.first).ToString()));
+                entry.push_back(Pair("address", CFreicoinAddress(r.first).ToString()));
                 entry.push_back(Pair("category", "receive"));
                 entry.push_back(Pair("amount", ValueFromAmount(r.second)));
                 if (fLong)
@@ -1935,7 +1935,7 @@ Value encryptwallet(const Array& params, bool fHelp)
     // slack space in .dat files; that is bad if the old data is
     // unencrypted private keys.  So:
     StartShutdown();
-    return "wallet encrypted; Bitcoin server stopping, restart to run with encrypted wallet";
+    return "wallet encrypted; Freicoin server stopping, restart to run with encrypted wallet";
 }
 
 class DescribeAddressVisitor : public boost::static_visitor<Object>
@@ -1965,7 +1965,7 @@ public:
         obj.push_back(Pair("script", GetTxnOutputType(whichType)));
         Array a;
         BOOST_FOREACH(const CTxDestination& addr, addresses)
-            a.push_back(CBitcoinAddress(addr).ToString());
+            a.push_back(CFreicoinAddress(addr).ToString());
         obj.push_back(Pair("addresses", a));
         if (whichType == TX_MULTISIG)
             obj.push_back(Pair("sigsrequired", nRequired));
@@ -1977,10 +1977,10 @@ Value validateaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "validateaddress <bitcoinaddress>\n"
-            "Return information about <bitcoinaddress>.");
+            "validateaddress <freicoinaddress>\n"
+            "Return information about <freicoinaddress>.");
 
-    CBitcoinAddress address(params[0].get_str());
+    CFreicoinAddress address(params[0].get_str());
     bool isValid = address.IsValid();
 
     Object ret;
@@ -2015,10 +2015,10 @@ Value getwork(const Array& params, bool fHelp)
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "Bitcoin is not connected!");
+        throw JSONRPCError(-9, "Freicoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "Bitcoin is downloading blocks...");
+        throw JSONRPCError(-10, "Freicoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -2127,10 +2127,10 @@ Value getmemorypool(const Array& params, bool fHelp)
     if (params.size() == 0)
     {
         if (vNodes.empty())
-            throw JSONRPCError(-9, "Bitcoin is not connected!");
+            throw JSONRPCError(-9, "Freicoin is not connected!");
 
         if (IsInitialBlockDownload())
-            throw JSONRPCError(-10, "Bitcoin is downloading blocks...");
+            throw JSONRPCError(-10, "Freicoin is downloading blocks...");
 
         static CReserveKey reservekey(pwalletMain);
 
@@ -2382,7 +2382,7 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
 {
     ostringstream s;
     s << "POST / HTTP/1.1\r\n"
-      << "User-Agent: bitcoin-json-rpc/" << FormatFullVersion() << "\r\n"
+      << "User-Agent: freicoin-json-rpc/" << FormatFullVersion() << "\r\n"
       << "Host: 127.0.0.1\r\n"
       << "Content-Type: application/json\r\n"
       << "Content-Length: " << strMsg.size() << "\r\n"
@@ -2413,7 +2413,7 @@ static string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
     if (nStatus == 401)
         return strprintf("HTTP/1.0 401 Authorization Required\r\n"
             "Date: %s\r\n"
-            "Server: bitcoin-json-rpc/%s\r\n"
+            "Server: freicoin-json-rpc/%s\r\n"
             "WWW-Authenticate: Basic realm=\"jsonrpc\"\r\n"
             "Content-Type: text/html\r\n"
             "Content-Length: 296\r\n"
@@ -2440,7 +2440,7 @@ static string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "Connection: %s\r\n"
             "Content-Length: %d\r\n"
             "Content-Type: application/json\r\n"
-            "Server: bitcoin-json-rpc/%s\r\n"
+            "Server: freicoin-json-rpc/%s\r\n"
             "\r\n"
             "%s",
         nStatus,
@@ -2538,7 +2538,7 @@ bool HTTPAuthorized(map<string, string>& mapHeaders)
 }
 
 //
-// JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility,
+// JSON-RPC protocol.  Freicoin speaks version 1.0 for maximum compatibility,
 // but uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
 // unspecified (HTTP errors and contents of 'error').
 //
@@ -2806,7 +2806,7 @@ void ThreadRPCServer2(void* parg)
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
-        string strWhatAmI = "To use bitcoind";
+        string strWhatAmI = "To use freicoind";
         if (mapArgs.count("-server"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
         else if (mapArgs.count("-daemon"))
@@ -2814,7 +2814,7 @@ void ThreadRPCServer2(void* parg)
         uiInterface.ThreadSafeMessageBox(strprintf(
             _("%s, you must set a rpcpassword in the configuration file:\n %s\n"
               "It is recommended you use the following random password:\n"
-              "rpcuser=bitcoinrpc\n"
+              "rpcuser=freicoinrpc\n"
               "rpcpassword=%s\n"
               "(you do not need to remember this password)\n"
               "If the file does not exist, create it with owner-readable-only file permissions.\n"),

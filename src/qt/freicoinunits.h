@@ -1,18 +1,18 @@
-#ifndef BITCOINUNITS_H
-#define BITCOINUNITS_H
+#ifndef FREICOINUNITS_H
+#define FREICOINUNITS_H
 
 #include <QString>
 #include <QAbstractListModel>
 
-/** Bitcoin unit definitions. Encapsulates parsing and formatting
+/** Freicoin unit definitions. Encapsulates parsing and formatting
    and serves as list model for dropdown selection boxes.
 */
-class BitcoinUnits: public QAbstractListModel
+class FreicoinUnits: public QAbstractListModel
 {
 public:
-    explicit BitcoinUnits(QObject *parent);
+    explicit FreicoinUnits(QObject *parent);
 
-    /** Bitcoin units.
+    /** Freicoin units.
       @note Source: https://en.bitcoin.it/wiki/Units . Please add only sensible ones
      */
     enum Unit
@@ -59,8 +59,8 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     ///@}
 private:
-    QList<BitcoinUnits::Unit> unitlist;
+    QList<FreicoinUnits::Unit> unitlist;
 };
-typedef BitcoinUnits::Unit BitcoinUnit;
+typedef FreicoinUnits::Unit FreicoinUnit;
 
-#endif // BITCOINUNITS_H
+#endif // FREICOINUNITS_H

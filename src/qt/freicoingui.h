@@ -1,5 +1,5 @@
-#ifndef BITCOINGUI_H
-#define BITCOINGUI_H
+#ifndef FREICOINGUI_H
+#define FREICOINGUI_H
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
@@ -27,22 +27,22 @@ class QUrl;
 QT_END_NAMESPACE
 
 /**
-  Bitcoin GUI main class. This class represents the main window of the Bitcoin UI. It communicates with both the client and
+  Freicoin GUI main class. This class represents the main window of the Freicoin UI. It communicates with both the client and
   wallet models to give the user an up-to-date view of the current core state.
 */
-class BitcoinGUI : public QMainWindow
+class FreicoinGUI : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit BitcoinGUI(QWidget *parent = 0);
-    ~BitcoinGUI();
+    explicit FreicoinGUI(QWidget *parent = 0);
+    ~FreicoinGUI();
 
     /** Set the client model.
         The client model represents the part of the core that communicates with the P2P network, and is wallet-agnostic.
     */
     void setClientModel(ClientModel *clientModel);
     /** Set the wallet model.
-        The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
+        The wallet model represents a freicoin wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);

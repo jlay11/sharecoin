@@ -27,7 +27,7 @@ MessagePage::MessagePage(QWidget *parent) :
 
 #if (QT_VERSION >= 0x040700)
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->signFrom->setPlaceholderText(tr("Enter a Bitcoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
+    ui->signFrom->setPlaceholderText(tr("Enter a Freicoin address (e.g. 1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)"));
     ui->signature->setPlaceholderText(tr("Click \"Sign Message\" to get signature"));
 #endif
 
@@ -77,7 +77,7 @@ void MessagePage::on_signMessage_clicked()
 {
     QString address = ui->signFrom->text();
 
-    CBitcoinAddress addr(address.toStdString());
+    CFreicoinAddress addr(address.toStdString());
     if (!addr.IsValid())
     {
         QMessageBox::critical(this, tr("Error signing"), tr("%1 is not a valid address.").arg(address),
@@ -119,7 +119,7 @@ void MessagePage::on_signMessage_clicked()
     }
 
     ui->signature->setText(QString::fromStdString(EncodeBase64(&vchSig[0], vchSig.size())));
-    ui->signature->setFont(GUIUtil::bitcoinAddressFont());
+    ui->signature->setFont(GUIUtil::freicoinAddressFont());
 }
 
 void MessagePage::on_clearButton_clicked()

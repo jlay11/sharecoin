@@ -61,9 +61,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 }
                 else if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
-                    // Received by Bitcoin Address
+                    // Received by Freicoin Address
                     sub.type = TransactionRecord::RecvWithAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = CFreicoinAddress(address).ToString();
                 }
                 else
                 {
@@ -117,9 +117,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 CTxDestination address;
                 if (ExtractDestination(txout.scriptPubKey, address))
                 {
-                    // Sent to Bitcoin Address
+                    // Sent to Freicoin Address
                     sub.type = TransactionRecord::SendToAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = CFreicoinAddress(address).ToString();
                 }
                 else
                 {

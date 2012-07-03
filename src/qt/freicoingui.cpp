@@ -1,10 +1,10 @@
 /*
- * Qt4 bitcoin GUI.
+ * Qt4 freicoin GUI.
  *
  * W.J. van der Laan 2011-2012
  * The Bitcoin Developers 2011-2012
  */
-#include "bitcoingui.h"
+#include "freicoingui.h"
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
 #include "sendcoinsdialog.h"
@@ -20,7 +20,7 @@
 #include "addresstablemodel.h"
 #include "transactionview.h"
 #include "overviewpage.h"
-#include "bitcoinunits.h"
+#include "freicoinunits.h"
 #include "guiconstants.h"
 #include "askpassphrasedialog.h"
 #include "notificator.h"
@@ -58,7 +58,7 @@
 
 #include <iostream>
 
-BitcoinGUI::BitcoinGUI(QWidget *parent):
+FreicoinGUI::FreicoinGUI(QWidget *parent):
     QMainWindow(parent),
     clientModel(0),
     walletModel(0),
@@ -70,10 +70,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     rpcConsole(0)
 {
     resize(850, 550);
-    setWindowTitle(tr("Bitcoin Wallet"));
+    setWindowTitle(tr("Freicoin Wallet"));
 #ifndef Q_WS_MAC
-    qApp->setWindowIcon(QIcon(":icons/bitcoin"));
-    setWindowIcon(QIcon(":icons/bitcoin"));
+    qApp->setWindowIcon(QIcon(":icons/freicoin"));
+    setWindowIcon(QIcon(":icons/freicoin"));
 #else
     setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
@@ -169,7 +169,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     gotoOverviewPage();
 }
 
-BitcoinGUI::~BitcoinGUI()
+FreicoinGUI::~FreicoinGUI()
 {
     if(trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
         trayIcon->hide();
@@ -178,7 +178,7 @@ BitcoinGUI::~BitcoinGUI()
 #endif
 }
 
-void BitcoinGUI::createActions()
+void FreicoinGUI::createActions()
 {
     QActionGroup *tabGroup = new QActionGroup(this);
 
@@ -207,7 +207,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(receiveCoinsAction);
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send coins"), this);
-    sendCoinsAction->setToolTip(tr("Send coins to a Bitcoin address"));
+    sendCoinsAction->setToolTip(tr("Send coins to a Freicoin address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(sendCoinsAction);
@@ -236,17 +236,17 @@ void BitcoinGUI::createActions()
     quitAction->setToolTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About %1").arg(qApp->applicationName()), this);
-    aboutAction->setToolTip(tr("Show information about Bitcoin"));
+    aboutAction = new QAction(QIcon(":/icons/freicoin"), tr("&About %1").arg(qApp->applicationName()), this);
+    aboutAction->setToolTip(tr("Show information about Freicoin"));
     aboutAction->setMenuRole(QAction::AboutRole);
     aboutQtAction = new QAction(tr("About &Qt"), this);
     aboutQtAction->setToolTip(tr("Show information about Qt"));
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
-    optionsAction->setToolTip(tr("Modify configuration options for Bitcoin"));
+    optionsAction->setToolTip(tr("Modify configuration options for Freicoin"));
     optionsAction->setMenuRole(QAction::PreferencesRole);
-    toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("Show/Hide &Bitcoin"), this);
-    toggleHideAction->setToolTip(tr("Show or hide the Bitcoin window"));
+    toggleHideAction = new QAction(QIcon(":/icons/freicoin"), tr("Show/Hide &Freicoin"), this);
+    toggleHideAction->setToolTip(tr("Show or hide the Freicoin window"));
     exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
     exportAction->setToolTip(tr("Export the data in the current tab to a file"));
     encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Encrypt Wallet..."), this);
@@ -272,7 +272,7 @@ void BitcoinGUI::createActions()
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(verifyMessage()));
 }
 
-void BitcoinGUI::createMenuBar()
+void FreicoinGUI::createMenuBar()
 {
 #ifdef Q_WS_MAC
     // Create a decoupled menu bar on Mac which stays even if the window is closed
@@ -306,7 +306,7 @@ void BitcoinGUI::createMenuBar()
     help->addAction(aboutQtAction);
 }
 
-void BitcoinGUI::createToolBars()
+void FreicoinGUI::createToolBars()
 {
     QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -324,7 +324,7 @@ void BitcoinGUI::createToolBars()
     toolbar2->addAction(exportAction);
 }
 
-void BitcoinGUI::setClientModel(ClientModel *clientModel)
+void FreicoinGUI::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
     if(clientModel)
@@ -333,14 +333,14 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
 #ifndef Q_WS_MAC
-            qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
-            setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+            qApp->setWindowIcon(QIcon(":icons/freicoin_testnet"));
+            setWindowIcon(QIcon(":icons/freicoin_testnet"));
 #else
-            MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+            MacDockIconHandler::instance()->setIcon(QIcon(":icons/freicoin_testnet"));
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(tr("Bitcoin client") + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("Freicoin client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
                 toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
@@ -360,7 +360,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
     }
 }
 
-void BitcoinGUI::setWalletModel(WalletModel *walletModel)
+void FreicoinGUI::setWalletModel(WalletModel *walletModel)
 {
     this->walletModel = walletModel;
     if(walletModel)
@@ -389,14 +389,14 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
     }
 }
 
-void BitcoinGUI::createTrayIcon()
+void FreicoinGUI::createTrayIcon()
 {
     QMenu *trayIconMenu;
 #ifndef Q_WS_MAC
     trayIcon = new QSystemTrayIcon(this);
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
-    trayIcon->setToolTip(tr("Bitcoin client"));
+    trayIcon->setToolTip(tr("Freicoin client"));
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
@@ -429,17 +429,17 @@ void BitcoinGUI::createTrayIcon()
 }
 
 #ifndef Q_WS_MAC
-void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+void FreicoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if(reason == QSystemTrayIcon::Trigger)
     {
-        // Click on system tray icon triggers "show/hide Bitcoin"
+        // Click on system tray icon triggers "show/hide Freicoin"
         toggleHideAction->trigger();
     }
 }
 #endif
 
-void BitcoinGUI::optionsClicked()
+void FreicoinGUI::optionsClicked()
 {
     if(!clientModel || !clientModel->getOptionsModel())
         return;
@@ -448,14 +448,14 @@ void BitcoinGUI::optionsClicked()
     dlg.exec();
 }
 
-void BitcoinGUI::aboutClicked()
+void FreicoinGUI::aboutClicked()
 {
     AboutDialog dlg;
     dlg.setModel(clientModel);
     dlg.exec();
 }
 
-void BitcoinGUI::setNumConnections(int count)
+void FreicoinGUI::setNumConnections(int count)
 {
     QString icon;
     switch(count)
@@ -467,10 +467,10 @@ void BitcoinGUI::setNumConnections(int count)
     default: icon = ":/icons/connect_4"; break;
     }
     labelConnectionsIcon->setPixmap(QIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Bitcoin network", "", count));
+    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Freicoin network", "", count));
 }
 
-void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
+void FreicoinGUI::setNumBlocks(int count, int nTotalBlocks)
 {
     // don't show / hide progressBar and it's label if we have no connection(s) to the network
     if (!clientModel || clientModel->getNumConnections() == 0)
@@ -576,7 +576,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     progressBar->setToolTip(tooltip);
 }
 
-void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
+void FreicoinGUI::error(const QString &title, const QString &message, bool modal)
 {
     // Report errors from network/worker thread
     if(modal)
@@ -587,7 +587,7 @@ void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
     }
 }
 
-void BitcoinGUI::changeEvent(QEvent *e)
+void FreicoinGUI::changeEvent(QEvent *e)
 {
     QMainWindow::changeEvent(e);
 #ifndef Q_WS_MAC // Ignored on Mac
@@ -606,7 +606,7 @@ void BitcoinGUI::changeEvent(QEvent *e)
 #endif
 }
 
-void BitcoinGUI::closeEvent(QCloseEvent *event)
+void FreicoinGUI::closeEvent(QCloseEvent *event)
 {
     if(clientModel)
     {
@@ -621,20 +621,20 @@ void BitcoinGUI::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
+void FreicoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
 {
     QString strMessage =
         tr("This transaction is over the size limit.  You can still send it for a fee of %1, "
           "which goes to the nodes that process your transaction and helps to support the network.  "
           "Do you want to pay the fee?").arg(
-                BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, nFeeRequired));
+                FreicoinUnits::formatWithUnit(FreicoinUnits::BTC, nFeeRequired));
     QMessageBox::StandardButton retval = QMessageBox::question(
           this, tr("Confirm transaction fee"), strMessage,
           QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
     *payFee = (retval == QMessageBox::Yes);
 }
 
-void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int end)
+void FreicoinGUI::incomingTransaction(const QModelIndex & parent, int start, int end)
 {
     if(!walletModel || !clientModel)
         return;
@@ -663,13 +663,13 @@ void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int 
                                  "Type: %3\n"
                                  "Address: %4\n")
                               .arg(date)
-                              .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), amount, true))
+                              .arg(FreicoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), amount, true))
                               .arg(type)
                               .arg(address), icon);
     }
 }
 
-void BitcoinGUI::gotoOverviewPage()
+void FreicoinGUI::gotoOverviewPage()
 {
     overviewAction->setChecked(true);
     centralWidget->setCurrentWidget(overviewPage);
@@ -678,7 +678,7 @@ void BitcoinGUI::gotoOverviewPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
-void BitcoinGUI::gotoHistoryPage()
+void FreicoinGUI::gotoHistoryPage()
 {
     historyAction->setChecked(true);
     centralWidget->setCurrentWidget(transactionsPage);
@@ -688,7 +688,7 @@ void BitcoinGUI::gotoHistoryPage()
     connect(exportAction, SIGNAL(triggered()), transactionView, SLOT(exportClicked()));
 }
 
-void BitcoinGUI::gotoAddressBookPage()
+void FreicoinGUI::gotoAddressBookPage()
 {
     addressBookAction->setChecked(true);
     centralWidget->setCurrentWidget(addressBookPage);
@@ -698,7 +698,7 @@ void BitcoinGUI::gotoAddressBookPage()
     connect(exportAction, SIGNAL(triggered()), addressBookPage, SLOT(exportClicked()));
 }
 
-void BitcoinGUI::gotoReceiveCoinsPage()
+void FreicoinGUI::gotoReceiveCoinsPage()
 {
     receiveCoinsAction->setChecked(true);
     centralWidget->setCurrentWidget(receiveCoinsPage);
@@ -708,7 +708,7 @@ void BitcoinGUI::gotoReceiveCoinsPage()
     connect(exportAction, SIGNAL(triggered()), receiveCoinsPage, SLOT(exportClicked()));
 }
 
-void BitcoinGUI::gotoSendCoinsPage()
+void FreicoinGUI::gotoSendCoinsPage()
 {
     sendCoinsAction->setChecked(true);
     centralWidget->setCurrentWidget(sendCoinsPage);
@@ -717,7 +717,7 @@ void BitcoinGUI::gotoSendCoinsPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
-void BitcoinGUI::gotoMessagePage(QString addr)
+void FreicoinGUI::gotoMessagePage(QString addr)
 {
     if(!addr.isEmpty())
         messagePage->setAddress(addr);
@@ -733,14 +733,14 @@ void BitcoinGUI::gotoMessagePage(QString addr)
 #endif
 }
 
-void BitcoinGUI::dragEnterEvent(QDragEnterEvent *event)
+void FreicoinGUI::dragEnterEvent(QDragEnterEvent *event)
 {
     // Accept only URIs
     if(event->mimeData()->hasUrls())
         event->acceptProposedAction();
 }
 
-void BitcoinGUI::dropEvent(QDropEvent *event)
+void FreicoinGUI::dropEvent(QDropEvent *event)
 {
     if(event->mimeData()->hasUrls())
     {
@@ -756,13 +756,13 @@ void BitcoinGUI::dropEvent(QDropEvent *event)
         if (nValidUrisFound)
             gotoSendCoinsPage();
         else
-            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Bitcoin address or malformed URI parameters."));
+            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Freicoin address or malformed URI parameters."));
     }
 
     event->acceptProposedAction();
 }
 
-void BitcoinGUI::handleURI(QString strURI)
+void FreicoinGUI::handleURI(QString strURI)
 {
     // URI has to be valid
     if (sendCoinsPage->handleURI(strURI))
@@ -771,10 +771,10 @@ void BitcoinGUI::handleURI(QString strURI)
         gotoSendCoinsPage();
     }
     else
-        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Bitcoin address or malformed URI parameters."));
+        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Freicoin address or malformed URI parameters."));
 }
 
-void BitcoinGUI::setEncryptionStatus(int status)
+void FreicoinGUI::setEncryptionStatus(int status)
 {
     switch(status)
     {
@@ -803,7 +803,7 @@ void BitcoinGUI::setEncryptionStatus(int status)
     }
 }
 
-void BitcoinGUI::encryptWallet(bool status)
+void FreicoinGUI::encryptWallet(bool status)
 {
     if(!walletModel)
         return;
@@ -815,7 +815,7 @@ void BitcoinGUI::encryptWallet(bool status)
     setEncryptionStatus(walletModel->getEncryptionStatus());
 }
 
-void BitcoinGUI::backupWallet()
+void FreicoinGUI::backupWallet()
 {
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
     QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
@@ -826,21 +826,21 @@ void BitcoinGUI::backupWallet()
     }
 }
 
-void BitcoinGUI::changePassphrase()
+void FreicoinGUI::changePassphrase()
 {
     AskPassphraseDialog dlg(AskPassphraseDialog::ChangePass, this);
     dlg.setModel(walletModel);
     dlg.exec();
 }
 
-void BitcoinGUI::verifyMessage()
+void FreicoinGUI::verifyMessage()
 {
     VerifyMessageDialog *dlg = new VerifyMessageDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->show();
 }
 
-void BitcoinGUI::unlockWallet()
+void FreicoinGUI::unlockWallet()
 {
     if(!walletModel)
         return;
@@ -853,7 +853,7 @@ void BitcoinGUI::unlockWallet()
     }
 }
 
-void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
+void FreicoinGUI::showNormalIfMinimized(bool fToggleHidden)
 {
     // activateWindow() (sometimes) helps with keyboard focus on Windows
     if (isHidden())
@@ -875,7 +875,7 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
         hide();
 }
 
-void BitcoinGUI::toggleHidden()
+void FreicoinGUI::toggleHidden()
 {
     showNormalIfMinimized(true);
 }

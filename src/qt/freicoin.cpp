@@ -1,7 +1,7 @@
 /*
  * W.J. van der Laan 2011-2012
  */
-#include "bitcoingui.h"
+#include "freicoingui.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "optionsmodel.h"
@@ -23,8 +23,8 @@
 #include <boost/interprocess/ipc/message_queue.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
-#define _BITCOIN_QT_PLUGINS_INCLUDED
+#if defined(FREICOIN_NEED_QT_PLUGINS) && !defined(_FREICOIN_QT_PLUGINS_INCLUDED)
+#define _FREICOIN_QT_PLUGINS_INCLUDED
 #define __INSURE__
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(qcncodecs)
@@ -35,7 +35,7 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #endif
 
 // Need a global reference for the notifications to find the GUI
-static BitcoinGUI *guiref;
+static FreicoinGUI *guiref;
 static QSplashScreen *splashref;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, int style)
@@ -101,7 +101,7 @@ static void QueueShutdown()
  */
 static std::string Translate(const char* psz)
 {
-    return QCoreApplication::translate("bitcoin-core", psz).toStdString();
+    return QCoreApplication::translate("freicoin-core", psz).toStdString();
 }
 
 /* Handle runaway exceptions. Shows a message box with the problem and quits the program.
@@ -109,11 +109,11 @@ static std::string Translate(const char* psz)
 static void handleRunawayException(std::exception *e)
 {
     PrintExceptionContinue(e, "Runaway exception");
-    QMessageBox::critical(0, "Runaway exception", BitcoinGUI::tr("A fatal error occured. Bitcoin can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
+    QMessageBox::critical(0, "Runaway exception", FreicoinGUI::tr("A fatal error occured. Freicoin can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
     exit(1);
 }
 
-#ifndef BITCOIN_QT_TEST
+#ifndef FREICOIN_QT_TEST
 int main(int argc, char *argv[])
 {
 #if !defined(MAC_OSX) && !defined(WIN32)
@@ -122,11 +122,11 @@ int main(int argc, char *argv[])
     // Do this early as we don't want to bother initializing if we are just calling IPC
     for (int i = 1; i < argc; i++)
     {
-        if (boost::algorithm::istarts_with(argv[i], "bitcoin:"))
+        if (boost::algorithm::istarts_with(argv[i], "freicoin:"))
         {
             const char *strURI = argv[i];
             try {
-                boost::interprocess::message_queue mq(boost::interprocess::open_only, BITCOINURI_QUEUE_NAME);
+                boost::interprocess::message_queue mq(boost::interprocess::open_only, FREICOINURI_QUEUE_NAME);
                 if(mq.try_send(strURI, strlen(strURI), 0))
                     exit(0);
                 else
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForCStrings(QTextCodec::codecForTr());
 
-    Q_INIT_RESOURCE(bitcoin);
+    Q_INIT_RESOURCE(freicoin);
     QApplication app(argc, argv);
 
     // Install global event filter that makes sure that long tooltips can be word-wrapped
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     // Command-line options take precedence:
     ParseParameters(argc, argv);
 
-    // ... then bitcoin.conf:
+    // ... then freicoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(false)))
     {
         fprintf(stderr, "Error: Specified directory does not exist\n");
@@ -162,12 +162,12 @@ int main(int argc, char *argv[])
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
-    app.setOrganizationName("Bitcoin");
-    app.setOrganizationDomain("bitcoin.org");
+    app.setOrganizationName("Freicoin");
+    app.setOrganizationDomain("freicoin.org");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        app.setApplicationName("Bitcoin-Qt-testnet");
+        app.setApplicationName("Freicoin-Qt-testnet");
     else
-        app.setApplicationName("Bitcoin-Qt");
+        app.setApplicationName("Freicoin-Qt");
 
     // ... then GUI settings:
     OptionsModel optionsModel;
@@ -191,11 +191,11 @@ int main(int argc, char *argv[])
     if (qtTranslator.load("qt_" + lang_territory, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
         app.installTranslator(&qtTranslator);
 
-    // Load e.g. bitcoin_de.qm (shortcut "de" needs to be defined in bitcoin.qrc)
+    // Load e.g. freicoin_de.qm (shortcut "de" needs to be defined in freicoin.qrc)
     if (translatorBase.load(lang, ":/translations/"))
         app.installTranslator(&translatorBase);
 
-    // Load e.g. bitcoin_de_DE.qm (shortcut "de_DE" needs to be defined in bitcoin.qrc)
+    // Load e.g. freicoin_de_DE.qm (shortcut "de_DE" needs to be defined in freicoin.qrc)
     if (translator.load(lang_territory, ":/translations/"))
         app.installTranslator(&translator);
 
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
         if (GUIUtil::GetStartOnSystemStartup())
             GUIUtil::SetStartOnSystemStartup(true);
 
-        BitcoinGUI window;
+        FreicoinGUI window;
         guiref = &window;
         if(AppInit2())
         {
@@ -271,11 +271,11 @@ int main(int argc, char *argv[])
                 // Check for URI in argv
                 for (int i = 1; i < argc; i++)
                 {
-                    if (boost::algorithm::istarts_with(argv[i], "bitcoin:"))
+                    if (boost::algorithm::istarts_with(argv[i], "freicoin:"))
                     {
                         const char *strURI = argv[i];
                         try {
-                            boost::interprocess::message_queue mq(boost::interprocess::open_only, BITCOINURI_QUEUE_NAME);
+                            boost::interprocess::message_queue mq(boost::interprocess::open_only, FREICOINURI_QUEUE_NAME);
                             mq.try_send(strURI, strlen(strURI), 0);
                         }
                         catch (boost::interprocess::interprocess_exception &ex) {
@@ -304,4 +304,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-#endif // BITCOIN_QT_TEST
+#endif // FREICOIN_QT_TEST

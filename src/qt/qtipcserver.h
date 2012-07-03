@@ -1,4 +1,4 @@
-#define BITCOINURI_QUEUE_NAME "BitcoinURI"
+#define FREICOINURI_QUEUE_NAME "FreicoinURI"
 
 void ipcInit();
 void ipcShutdown();
