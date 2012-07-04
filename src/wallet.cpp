@@ -306,7 +306,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx)
                 CWalletTx& wtx = (*mi).second;
                 if (!wtx.IsSpent(txin.prevout.n) && IsMine(wtx.vout[txin.prevout.n]))
                 {
-                    printf("WalletUpdateSpent found spent coin %sbc %s\n"/*, FormatMoney(wtx.GetCredit()).c_str()*/, wtx.GetHash().ToString().c_str());
+                    printf("WalletUpdateSpent found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkSpent(txin.prevout.n);
                     wtx.WriteToDisk();
                     NotifyTransactionChanged(this, txin.prevout.hash, CT_UPDATED);
@@ -538,7 +538,7 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     if (IsCoinBase())
     {
         if (GetBlocksToMaturity() > 0)
-            nGeneratedImmature = pwallet->GetCredit(*this,GetDepthInMainChain());
+            nGeneratedImmature = pwallet->GetCredit(*this, GetDepthInMainChain());
         else
             nGeneratedMature = GetCredit();  // look into this
         return;
@@ -751,7 +751,7 @@ void CWallet::ReacceptWalletTransactions()
                 }
                 if (fUpdated)
                 {
-                    //printf("ReacceptWalletTransactions found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    printf("ReacceptWalletTransactions found spent coin %sbc %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
                     wtx.MarkDirty();
                     wtx.WriteToDisk();
                 }
@@ -1353,7 +1353,7 @@ void CWallet::PrintWallet(const CBlock& block)
         if (mapWallet.count(block.vtx[0].GetHash()))
         {
             CWalletTx& wtx = mapWallet[block.vtx[0].GetHash()];
-            printf("    mine:  %d  %d  %d", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity()/*, wtx.GetCredit()*/);
+            printf("    mine:  %d  %d  %d", wtx.GetDepthInMainChain(), wtx.GetBlocksToMaturity(), wtx.GetCredit());
         }
     }
     printf("\n");
