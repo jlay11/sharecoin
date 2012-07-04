@@ -437,7 +437,7 @@ bool CTransaction::CheckTransaction() const
     int64 nValueOut = 0, nOutput;
     BOOST_FOREACH(const CTxOut& txout, vout)
     {
-        nOutput = txout.GetPresentValue(0)
+        nOutput = txout.GetPresentValue(0);
         if (nOutput < 0)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue negative"));
         if (nOutput > MAX_MONEY)
@@ -1286,7 +1286,6 @@ bool CTransaction::ClientConnectInputs(CTxDB& txdb, int nBlockHeight)
     // Take over previous transactions' spent pointers
     {
         LOCK(mempool.cs);
-        int64 nValueIn = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             // Get prev tx from single transactions in memory
