@@ -1130,17 +1130,19 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
 
 int64 CTxOut::GetPresentValue(int nRelativeDepth) const
 {
-    if ( !nRelativeDepth )
-        return nValue;
     int64 nResult;
-    mpfr_t rate, mp;
-    mpfr_inits2(128, rate, mp);
-    mpfr_set_ui(mp,       1048575,        MPFR_RNDN);
-    mpfr_div_ui(rate, mp, 1048576,        MPFR_RNDN);
-    mpfr_pow_si(mp, rate, nRelativeDepth, MPFR_RNDN);
-    mpfr_mul_si(mp,   mp, nValue,         MPFR_RNDN);
-    nResult = mpfr_get_si(mp,             MPFR_RNDN);
-    mpfr_clears(rate, mp);
+    if ( !nRelativeDepth )
+        nResult = nValue;
+    else {
+        mpfr_t rate, mp;
+        mpfr_inits2(128, rate, mp, (mpfr_ptr) 0);
+        mpfr_set_ui(mp,       1048575,        MPFR_RNDN);
+        mpfr_div_ui(rate, mp, 1048576,        MPFR_RNDN);
+        mpfr_pow_si(mp, rate, nRelativeDepth, MPFR_RNDN);
+        mpfr_mul_si(mp,   mp, nValue,         MPFR_RNDN);
+        nResult = mpfr_get_si(mp,             MPFR_RNDN);
+        mpfr_clears(rate, mp, (mpfr_ptr) 0);
+    }
     return nResult;
 }
 
