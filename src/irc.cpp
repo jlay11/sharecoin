@@ -289,8 +289,8 @@ void ThreadIRCSeed2(void* parg)
         }
         
         if (fTestNet) {
-            Send(hSocket, "JOIN #freicoinTEST3\r");
-            Send(hSocket, "WHO #freicoinTEST3\r");
+            Send(hSocket, "JOIN #freicoinTEST\r");
+            Send(hSocket, "WHO #freicoinTEST\r");
         } else {
             // randomly join #freicoin00-#freicoin99
             int channel_number = GetRandInt(100);
