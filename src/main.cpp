@@ -553,10 +553,10 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        // For the purposes of accept(), present value is calculated 20 blocks
-        // in the future as a conservative estimate of how long it might take
-        // for transaction to be included in a block.
-        int64 nFees = tx.GetValueIn(mapInputs, nBestHeight+20)-tx.GetValueOut(0);
+        // For the purposes of accept(), present value is calculated 1 block
+        // in the future as a minimum estimate of how long it might take for
+        // transaction to be included in a block.
+        int64 nFees = tx.GetValueIn(mapInputs, nBestHeight+1)-tx.GetValueOut(0);
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
         // Don't accept it if it can't get into a block
@@ -1128,18 +1128,18 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
     return txPrev.vout[input.prevout.n];
 }
 
-int64 CTxOut::GetPresentValue(int nRelativeDepth) const
+int64 GetPresentValue(int64 nInitialValue, int nRelativeDepth)
 {
     int64 nResult;
     if ( !nRelativeDepth )
-        nResult = nValue;
+        nResult = nInitialValue;
     else {
         mpfr_t rate, mp;
         mpfr_inits2(128, rate, mp, (mpfr_ptr) 0);
         mpfr_set_ui(mp,       1048575,        MPFR_RNDN);
         mpfr_div_ui(rate, mp, 1048576,        MPFR_RNDN);
         mpfr_pow_si(mp, rate, nRelativeDepth, MPFR_RNDN);
-        mpfr_mul_si(mp,   mp, nValue,         MPFR_RNDN);
+        mpfr_mul_si(mp,   mp, nInitialValue,  MPFR_RNDN);
         nResult = mpfr_get_si(mp,             MPFR_RNDN);
         mpfr_clears(rate, mp, (mpfr_ptr) 0);
     }
@@ -2034,6 +2034,7 @@ bool LoadBlockIndex(bool fAllowNew)
             << vector<unsigned char>(
                    (const unsigned char*)pszTimestamp,
                    (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        // FIXME: replace with 2380952380962 before we go live.
         txNew.vout[0].SetInitialValue(23810 * COIN);
         txNew.vout[0].scriptPubKey = CScript()
             << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")

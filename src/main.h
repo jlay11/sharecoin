@@ -102,6 +102,7 @@ int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
+int64 GetPresentValue(int64 nInitialValue, int nRelativeDepth);
 
 
 
@@ -374,7 +375,10 @@ public:
 
         @return	Accessible freicoins after discount
      */
-    int64 GetPresentValue(int nRelativeDepth) const;
+    int64 GetPresentValue(int nRelativeDepth) const
+    {
+        return ::GetPresentValue(nValue, nRelativeDepth);
+    }
 
     void SetInitialValue(int64 nInitialValue)
     {

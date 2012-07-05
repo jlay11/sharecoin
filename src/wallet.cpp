@@ -1092,6 +1092,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         CTxDB txdb("r");
         {
             nFeeRet = nTransactionFee;
+            int64 nTimeValueAdj = 0;
             loop
             {
                 wtxNew.vin.clear();
@@ -1107,15 +1108,20 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 // Choose coins to use
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
                 int64 nValueIn = 0;
-                if (!SelectCoins(nTotalValue, setCoins, nValueIn))
+                if (!SelectCoins(nTotalValue + nTimeValueAdj, setCoins, nValueIn))
                     return false;
+
+                nTimeValueAdj = GetPresentValue(nValueIn, -12) - nValueIn;
+                if ( nValue + nTimeValueAdj + nFeeRet > nValueIn )
+                    continue;
+
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
                     int64 nCredit = pcoin.first->vout[pcoin.second].GetPresentValue(pcoin.first->GetDepthInMainChain());
                     dPriority += (double)nCredit * pcoin.first->GetDepthInMainChain();
                 }
 
-                int64 nChange = nValueIn - nValue - nFeeRet;
+                int64 nChange = nValueIn - nValue - nTimeValueAdj - nFeeRet;
                 // if sub-cent change is required, the fee must be raised to at least MIN_TX_FEE
                 // or until nChange becomes zero
                 // NOTE: this depends on the exact behaviour of GetMinFee
