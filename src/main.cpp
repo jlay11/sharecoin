@@ -1154,18 +1154,30 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
     int64 nResult = 0, nInput;
     for (unsigned int i = 0; i < vin.size(); i++)
     {
-        const CTxOut&      txOut = GetOutputFor(vin[i], inputs);
-        const CBlockIndex *pPrevBlock;
+        CTransaction        tx;
+        const CTxOut&       txOut = GetOutputFor(vin[i], inputs);
+        const CBlockIndex  *pPrevBlock;
+        uint256 hashPrevBlock = 0;
+        int     nRelativeDepth;
 
-        map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(vin[i].prevout.hash);
-        if ( mi == mapBlockIndex.end() )
-            throw std::runtime_error("CTransaction::GetValueIn() : vin[i].prevout.hash not found");
+        if ( !GetTransaction(vin[i].prevout.hash, tx, hashPrevBlock) ) {
+            if ( nBlockHeight < nBestHeight )
+                throw std::runtime_error("CTransaction::GetValueIn() : input not in block chain");
 
-        pPrevBlock = (*mi).second;
-        if ( pPrevBlock->nHeight > nBlockHeight )
-            throw std::runtime_error("CTransaction::GetValueIn() : pPrevBlock->nHeight greater than requested height");
+            nRelativeDepth = 0;
+        } else {
+            map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
+            if ( mi == mapBlockIndex.end() )
+                throw std::runtime_error("CTransaction::GetValueIn() : hashBlock not found");
 
-        nInput   = txOut.GetPresentValue(nBlockHeight - pPrevBlock->nHeight);
+            pPrevBlock = (*mi).second;
+            if ( pPrevBlock->nHeight > nBlockHeight )
+                throw std::runtime_error("CTransaction::GetValueIn() : pPrevBlock->nHeight greater than requested height");
+
+            nRelativeDepth = nBlockHeight - pPrevBlock->nHeight;
+        }
+
+        nInput   = txOut.GetPresentValue(nRelativeDepth);
         nResult += nInput;
         // Check for negative or overflow input values
         if (!MoneyRange(nInput) || !MoneyRange(nResult))
