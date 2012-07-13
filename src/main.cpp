@@ -1140,7 +1140,9 @@ int64 GetPresentValue(int64 nInitialValue, int nRelativeDepth)
         mpfr_div_ui(rate, mp, 1048576,        MPFR_RNDN);
         mpfr_pow_si(mp, rate, nRelativeDepth, MPFR_RNDN);
         mpfr_mul_si(mp,   mp, nInitialValue,  MPFR_RNDN);
-        nResult = mpfr_get_si(mp,             MPFR_RNDN);
+        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
+            throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
+        nResult = mpfr_get_sj(mp,             MPFR_RNDN);
         mpfr_clears(rate, mp, (mpfr_ptr) 0);
     }
     return nResult;
