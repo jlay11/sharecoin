@@ -98,12 +98,10 @@ Section -post SEC0001
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
-
-    # freicoin: URI handling disabled for 0.6.0
-    #    WriteRegStr HKCR "freicoin" "URL Protocol" ""
-    #    WriteRegStr HKCR "freicoin" "" "URL:Freicoin"
-    #    WriteRegStr HKCR "freicoin\DefaultIcon" "" $INSTDIR\freicoin-qt.exe
-    #    WriteRegStr HKCR "freicoin\shell\open\command" "" '"$INSTDIR\freicoin-qt.exe" "$$1"'
+    WriteRegStr HKCR "freicoin" "URL Protocol" ""
+    WriteRegStr HKCR "freicoin" "" "URL:Freicoin"
+    WriteRegStr HKCR "freicoin\DefaultIcon" "" $INSTDIR\freicoin-qt.exe
+    WriteRegStr HKCR "freicoin\shell\open\command" "" '"$INSTDIR\freicoin-qt.exe" "$$1"'
 SectionEnd
 
 # Macro for selecting uninstaller sections
