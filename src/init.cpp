@@ -41,7 +41,7 @@ void ExitTimeout(void* parg)
 void StartShutdown()
 {
 #ifdef QT_GUI
-    // ensure we leave the Qt main loop for a clean GUI exit (Shutdown() is called in bitcoin.cpp afterwards)
+    // ensure we leave the Qt main loop for a clean GUI exit (Shutdown() is called in freicoin.cpp afterwards)
     uiInterface.QueueShutdown();
 #else
     // Without UI, Shutdown() can simply be started in a new thread
@@ -78,7 +78,7 @@ void Shutdown(void* parg)
         printf("Freicoin exited\n\n");
         fExit = true;
 #ifndef QT_GUI
-        // ensure non UI client get's exited here, but let Bitcoin-Qt reach return 0; in bitcoin.cpp
+        // ensure non UI client get's exited here, but let Freicoin-Qt reach return 0; in freicoin.cpp
         exit(0);
 #endif
     }

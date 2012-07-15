@@ -28,7 +28,7 @@ This directory contains all translations. Filenames must adhere to this format:
 
     freicoin_xx_YY.ts or freicoin_xx.ts
 
-#### bitcoin_en.ts (Source file)
+#### freicoin_en.ts (Source file)
 
 `src/qt/locale/freicoin_en.ts` is treated in a special way. It is used as the
 source for all other translations. Whenever a string in the code is changed
@@ -37,13 +37,13 @@ by running `lupdate` (included in the Qt SDK). Also, a custom script is used
 to extract strings from the non-Qt parts:
 
     python share/qt/extract_strings_qt.py
-    lupdate bitcoin-qt.pro -no-obsolete -locations none -ts src/qt/locale/bitcoin_en.ts
+    lupdate freicoin-qt.pro -no-obsolete -locations none -ts src/qt/locale/freicoin_en.ts
     
 ##### Handling of plurals in the source file
 
 When new plurals are added to the source file, it's important to do the following steps:
 
-1. Open bitcoin_en.ts in Qt Linguist (also included in the Qt SDK)
+1. Open freicoin_en.ts in Qt Linguist (also included in the Qt SDK)
 2. Search for `%n`, which will take you to the parts in the translation that use plurals
 3. Look for empty `English Translation (Singular)` and `English Translation (Plural)` fields
 4. Add the appropriate strings for the singular and plural form of the base string
@@ -59,7 +59,7 @@ in Transifex and can be translated.
 
 To create the pull-request you have to do:
 
-    git add src/qt/bitcoinstrings.cpp src/qt/locale/bitcoin_en.ts
+    git add src/qt/freicoinstrings.cpp src/qt/locale/freicoin_en.ts
     git commit
 
 Syncing with Transifex

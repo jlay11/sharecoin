@@ -217,11 +217,11 @@ void FreicoinGUI::createActions()
     tabGroup->addAction(sendCoinsAction);
 
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
-    signMessageAction->setToolTip(tr("Sign a message to prove you own a Bitcoin address"));
+    signMessageAction->setToolTip(tr("Sign a message to prove you own a Freicoin address"));
     tabGroup->addAction(signMessageAction);
 
     verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
-    verifyMessageAction->setToolTip(tr("Verify a message to ensure it was signed with a specified Bitcoin address"));
+    verifyMessageAction->setToolTip(tr("Verify a message to ensure it was signed with a specified Freicoin address"));
     tabGroup->addAction(verifyMessageAction);
 
 #ifdef FIRST_CLASS_MESSAGING
@@ -754,7 +754,7 @@ void FreicoinGUI::gotoSignMessageTab(QString addr)
         signVerifyMessageDialog->setAddress_SM(addr);
 }
 
-void BitcoinGUI::gotoVerifyMessageTab(QString addr)
+void FreicoinGUI::gotoVerifyMessageTab(QString addr)
 {
 #ifdef FIRST_CLASS_MESSAGING
     firstClassMessagingAction->setChecked(true);
