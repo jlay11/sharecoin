@@ -11,9 +11,9 @@ FreicoinUnits::FreicoinUnits(QObject *parent):
 QList<FreicoinUnits::Unit> FreicoinUnits::availableUnits()
 {
     QList<FreicoinUnits::Unit> unitlist;
-    unitlist.append(BTC);
-    unitlist.append(mBTC);
-    unitlist.append(uBTC);
+    unitlist.append(FRC);
+    unitlist.append(mFRC);
+    unitlist.append(uFRC);
     return unitlist;
 }
 
@@ -21,9 +21,9 @@ bool FreicoinUnits::valid(int unit)
 {
     switch(unit)
     {
-    case BTC:
-    case mBTC:
-    case uBTC:
+    case FRC:
+    case mFRC:
+    case uFRC:
         return true;
     default:
         return false;
@@ -34,9 +34,9 @@ QString FreicoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("BTC");
-    case mBTC: return QString("mBTC");
-    case uBTC: return QString::fromUtf8("μBTC");
+    case FRC: return QString("FRC");
+    case mFRC: return QString("mFRC");
+    case uFRC: return QString::fromUtf8("μFRC");
     default: return QString("???");
     }
 }
@@ -45,9 +45,9 @@ QString FreicoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("Freicoins");
-    case mBTC: return QString("Milli-Freicoins (1 / 1,000)");
-    case uBTC: return QString("Micro-Freicoins (1 / 1,000,000)");
+    case FRC: return QString("Freicoins");
+    case mFRC: return QString("Milli-Freicoins (1 / 1,000)");
+    case uFRC: return QString("Micro-Freicoins (1 / 1,000,000)");
     default: return QString("???");
     }
 }
@@ -56,9 +56,9 @@ qint64 FreicoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case BTC:  return 100000000;
-    case mBTC: return 100000;
-    case uBTC: return 100;
+    case FRC:  return 100000000;
+    case mFRC: return 100000;
+    case uFRC: return 100;
     default:   return 100000000;
     }
 }
@@ -67,9 +67,9 @@ int FreicoinUnits::amountDigits(int unit)
 {
     switch(unit)
     {
-    case BTC: return 8; // 21,000,000 (# digits, without commas)
-    case mBTC: return 11; // 21,000,000,000
-    case uBTC: return 14; // 21,000,000,000,000
+    case FRC: return 11; // 10,000,000,000 (# digits, without commas)
+    case mFRC: return 14; // 10,000,000,000,000
+    case uFRC: return 17; // 10,000,000,000,000,000
     default: return 0;
     }
 }
@@ -78,9 +78,9 @@ int FreicoinUnits::decimals(int unit)
 {
     switch(unit)
     {
-    case BTC: return 8;
-    case mBTC: return 5;
-    case uBTC: return 2;
+    case FRC: return 8;
+    case mFRC: return 5;
+    case uFRC: return 2;
     default: return 0;
     }
 }

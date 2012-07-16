@@ -108,7 +108,7 @@ bool parseFreicoinURI(const QUrl &uri, SendCoinsRecipient *out)
         {
             if(!i->second.isEmpty())
             {
-                if(!FreicoinUnits::parse(FreicoinUnits::BTC, i->second, &rv.amount))
+                if(!FreicoinUnits::parse(FreicoinUnits::FRC, i->second, &rv.amount))
                 {
                     return false;
                 }
