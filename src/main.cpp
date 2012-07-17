@@ -1166,8 +1166,8 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
     // adjust. This also provides a termination condition for recursion caused
     // by calling CTransaction::GetValueIn().
     if ( ! tx.IsCoinBase() ) {
-        int64 nValueIn;  // tx.GetValueIn()
-        int64 nValueOut; // sum(txout.nValue for txout in tx.vout)
+        int64 nValueIn;      // tx.GetValueIn()
+        int64 nValueOut = 0; // sum(txout.nValue for txout in tx.vout)
 
         // TODO: retrieve nValueIn, nValueOut from cache (if present)
         bool fCache = false;
