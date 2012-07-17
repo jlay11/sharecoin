@@ -1181,7 +1181,7 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
             CTxDB     txdb("r");
 
             CTransaction txUnused;
-            if ( ! GetTransaction(tx.GetHash(), txUnused, hashBlock) || ! hashBlock )
+            if ( ! GetTransaction(tx.GetHash(), txUnused, hashBlock) || 0 == hashBlock )
                 nBlockHeight = nBestHeight; // Transaction not in block chain
             else {
                 map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
