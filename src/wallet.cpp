@@ -1130,6 +1130,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     nFeeRet += nMoveToFee;
                 }
 
+                wtxNew.nFee = nFeeRet;
+
                 if (nChange > 0)
                 {
                     // Note: We use a new key here to keep it from being obvious which side is the change.
