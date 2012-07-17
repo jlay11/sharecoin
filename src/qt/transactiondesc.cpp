@@ -174,7 +174,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                         }
                     }
 
-                    strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -txout.GetPresentValue(wtx.GetDepthInMainChain())) + "<br>";
+                    strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -GetPresentValue(wtx, txout, wtx.GetDepthInMainChain())) + "<br>";
                 }
 
                 if (fAllToMe)
@@ -260,7 +260,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                                     strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address]) + " ";
                                 strHTML += QString::fromStdString(CFreicoinAddress(address).ToString());
                             }
-                            strHTML = strHTML + " " + tr("Amount") + "=" + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, vout.GetPresentValue(wtx.GetDepthInMainChain()));
+                            strHTML = strHTML + " " + tr("Amount") + "=" + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, GetPresentValue(wtx, vout, wtx.GetDepthInMainChain()));
                             strHTML = strHTML + " IsMine=" + (wallet->IsMine(vout) ? tr("true") : tr("false")) + "</li>";
                         }
                     }

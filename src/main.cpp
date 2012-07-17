@@ -440,7 +440,7 @@ bool CTransaction::CheckTransaction() const
     int64 nValueOut = 0, nOutput;
     BOOST_FOREACH(const CTxOut& txout, vout)
     {
-        nOutput = txout.GetPresentValue(0);
+        nOutput = GetPresentValue(*this, txout, 0);
         if (nOutput < 0)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue negative"));
         if (nOutput > MAX_MONEY)
@@ -1047,7 +1047,7 @@ bool CTransaction::DisconnectInputs(CTxDB& txdb)
 
 
 bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTestPool,
-                               bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid)
+                               bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid) const
 {
     // FetchInputs can return false either because we just haven't seen some inputs
     // (in which case the transaction should be stored as an orphan)
@@ -1134,25 +1134,100 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
     return txPrev.vout[input.prevout.n];
 }
 
-int64 GetPresentValue(int64 nInitialValue, int nRelativeDepth)
+int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth)
 {
     int64 nResult;
     if ( !nRelativeDepth )
         nResult = nInitialValue;
     else {
         mpfr_t rate, mp, init;
-        mpfr_inits2(128, rate, mp, init, (mpfr_ptr) 0);
-        mpfr_set_ui(mp,       1048575,        MPFR_RNDN);
-        mpfr_div_ui(rate, mp, 1048576,        MPFR_RNDN);
-        mpfr_pow_si(mp, rate, nRelativeDepth, MPFR_RNDN);
-        mpfr_set_sj(init,     nInitialValue,  MPFR_RNDN);
-        mpfr_mul   (mp,   mp, init,           MPFR_RNDN);
+        mpfr_inits2(113, rate, mp, init, (mpfr_ptr) 0);
+        mpfr_set_ui(mp,       1048575,                   MPFR_RNDN);
+        mpfr_div_ui(rate, mp, 1048576,                   MPFR_RNDN);
+        mpfr_pow_si(mp, rate,            nRelativeDepth, MPFR_RNDN);
+        mpfr_set_sj(init,     (intmax_t) nInitialValue,  MPFR_RNDN);
+        mpfr_mul   (mp,   mp, init,                      MPFR_RNDN);
         if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
-            throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
-        nResult = mpfr_get_sj(mp,             MPFR_RNDN);
+            throw std::runtime_error("GetTimeValueAdjustment() : adjusted value does not fit in intmax_t");
+        nResult = mpfr_get_sj(mp,                        MPFR_RNDN);
         mpfr_clears(rate, mp, init, (mpfr_ptr) 0);
     }
     return nResult;
+}
+
+int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth)
+{
+    int64 nValue = output.nValue;
+
+    // If this is a coinbase output, then skip to the end; coinbase outputs
+    // create new coins and have no inputs, so there are no input values to
+    // adjust. This also provides a termination condition for recursion caused
+    // by calling CTransaction::GetValueIn().
+    if ( ! tx.IsCoinBase() ) {
+        int64 nValueIn;  // tx.GetValueIn()
+        int64 nValueOut; // sum(txout.nValue for txout in tx.vout)
+
+        // TODO: retrieve nValueIn, nValueOut from cache (if present)
+        bool fCache = false;
+
+        if ( ! fCache ) {
+            // Inputs for tx.GetValueIn(), which we need to fill in.
+            MapPrevTx mapInputs;
+            int       nBlockHeight;
+
+            uint256   hashBlock = 0;
+            CTxDB     txdb("r");
+
+            CTransaction txUnused;
+            if ( ! GetTransaction(tx.GetHash(), txUnused, hashBlock) || ! hashBlock )
+                nBlockHeight = nBestHeight; // Transaction not in block chain
+            else {
+                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+                if ( mi == mapBlockIndex.end() )
+                    throw std::runtime_error("GetPresentValue() : hashBlock not found");
+
+                nBlockHeight = (*mi).second->nHeight;
+            }
+
+            map<uint256, CTxIndex> mapUnused;
+            bool fInvalid = false;
+            if ( ! tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid) ) {
+                if (fInvalid)
+                    throw std::runtime_error("GetPresentValue() : FetchInputs found invalid tx");
+                else
+                    throw std::runtime_error("GetPresentValue() : FetchInputs failed to find inputs");
+            }
+
+            nValueIn = tx.GetValueIn(mapInputs, nBlockHeight);
+
+            BOOST_FOREACH(const CTxOut& txout, tx.vout) {
+                int64 nOut = txout.nValue;
+                nValueOut += nOut;
+                if (!MoneyRange(nOut))
+                    throw std::runtime_error("GetPresentValue() : output value out of range");
+                if (!MoneyRange(nValueOut))
+                    throw std::runtime_error("GetPresentValue() : overflow of output total");
+            }
+        }
+
+        // TODO: cache nValueIn and nValueOut for future use
+
+        mpfr_t in, out, fee, mp;
+        mpfr_inits2(113, in, out, fee, mp, (mpfr_ptr) 0);
+        mpfr_set_sj(in,  (intmax_t) nValueIn,  MPFR_RNDN);
+        mpfr_set_sj(out, (intmax_t) nValueOut, MPFR_RNDN);
+        mpfr_set_sj(fee, (intmax_t) tx.nFee,   MPFR_RNDN);
+        mpfr_add(    mp, out, fee,             MPFR_RNDN);
+        mpfr_div(    mp,  in,  mp,             MPFR_RNDN);
+
+        mpfr_set_sj(out, (intmax_t) nValue,    MPFR_RNDN);
+        mpfr_mul(    mp, out,  mp,             MPFR_RNDN);
+        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
+            throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
+        nValue = mpfr_get_sj(mp, MPFR_RNDN);
+    }
+
+    return GetTimeValueAdjustment(output.nValue, nRelativeDepth);
 }
 
 int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
@@ -1186,7 +1261,7 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
             nRelativeDepth = nBlockHeight - pPrevBlock->nHeight;
         }
 
-        nInput   = txOut.GetPresentValue(nRelativeDepth);
+        nInput   = GetPresentValue(tx, txOut, nRelativeDepth);
         nResult += nInput;
         // Check for negative or overflow input values
         if (!MoneyRange(nInput) || !MoneyRange(nResult))
@@ -3442,7 +3517,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
                 // Read block header
                 int nConf = txindex.GetDepthInMainChain();
 
-                int64 nValueIn = txPrev.vout[txin.prevout.n].GetPresentValue(nConf);
+                int64 nValueIn = GetPresentValue(txPrev, txPrev.vout[txin.prevout.n], nConf);
 
                 dPriority += (double)nValueIn * nConf;
 
@@ -3630,7 +3705,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     printf("FreicoinMiner:\n");
     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
     pblock->print();
-    printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].GetPresentValue(0)).c_str());
+    printf("generated %s\n", FormatMoney(GetPresentValue(pblock->vtx[0], pblock->vtx[0].vout[0], 0)).c_str());
 
     // Found a solution
     {

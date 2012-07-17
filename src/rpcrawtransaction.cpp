@@ -80,7 +80,7 @@ TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     {
         const CTxOut& txout = tx.vout[i];
         Object out;
-        out.push_back(Pair("value", ValueFromAmount(txout.GetPresentValue(0))));
+        out.push_back(Pair("value", ValueFromAmount(GetPresentValue(tx, txout, 0))));
         out.push_back(Pair("n", (boost::int64_t)i));
         Object o;
         ScriptPubKeyToJSON(txout.scriptPubKey, o);
@@ -170,7 +170,7 @@ Value listunspent(const Array& params, bool fHelp)
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
             continue;
 
-        int64 nValue = out.tx->vout[out.i].GetPresentValue(out.nDepth);
+        int64 nValue = GetPresentValue(*out.tx, out.tx->vout[out.i], out.nDepth);
         const CScript& pk = out.tx->vout[out.i].scriptPubKey;
         Object entry;
         entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));

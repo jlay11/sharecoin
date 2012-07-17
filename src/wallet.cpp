@@ -457,7 +457,7 @@ int64 CWallet::GetDebit(const CTxIn &txin) const
             const CWalletTx& prev = (*mi).second;
             if (txin.prevout.n < prev.vout.size())
                 if (IsMine(prev.vout[txin.prevout.n]))
-                    return prev.vout[txin.prevout.n].GetPresentValue(prev.GetDepthInMainChain());
+                    return GetPresentValue(prev, prev.vout[txin.prevout.n], prev.GetDepthInMainChain());
         }
     }
     return 0;
@@ -568,10 +568,10 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
             continue;
 
         if (nDebit > 0)
-            listSent.push_back(make_pair(address, txout.GetPresentValue(GetDepthInMainChain())));
+            listSent.push_back(make_pair(address, GetPresentValue(*this, txout, GetDepthInMainChain())));
 
         if (pwallet->IsMine(txout))
-            listReceived.push_back(make_pair(address, txout.GetPresentValue(GetDepthInMainChain())));
+            listReceived.push_back(make_pair(address, GetPresentValue(*this, txout, GetDepthInMainChain())));
     }
 
 }
@@ -919,7 +919,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed) const
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].GetPresentValue(pcoin->GetDepthInMainChain()) > 0)
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && GetPresentValue(*pcoin, pcoin->vout[i], pcoin->GetDepthInMainChain()) > 0)
                     vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
         }
     }
@@ -986,7 +986,7 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
             continue;
 
         int i = output.i;
-        int64 n = pcoin->vout[i].GetPresentValue(pcoin->GetDepthInMainChain());
+        int64 n = GetPresentValue(*pcoin, pcoin->vout[i], pcoin->GetDepthInMainChain());
 
         pair<int64,pair<const CWalletTx*,unsigned int> > coin = make_pair(n,make_pair(pcoin, i));
 
@@ -1095,7 +1095,6 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
         CTxDB txdb("r");
         {
             nFeeRet = nTransactionFee;
-            int64 nTimeValueAdj = 0;
             loop
             {
                 wtxNew.vin.clear();
@@ -1111,20 +1110,16 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 // Choose coins to use
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
                 int64 nValueIn = 0;
-                if (!SelectCoins(nTotalValue + nTimeValueAdj, setCoins, nValueIn))
+                if (!SelectCoins(nTotalValue, setCoins, nValueIn))
                     return false;
-
-                nTimeValueAdj = GetPresentValue(nValueIn, -12) - nValueIn;
-                if ( nValue + nTimeValueAdj + nFeeRet > nValueIn )
-                    continue;
 
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
-                    int64 nCredit = pcoin.first->vout[pcoin.second].GetPresentValue(pcoin.first->GetDepthInMainChain());
+                    int64 nCredit = GetPresentValue(*pcoin.first, pcoin.first->vout[pcoin.second], pcoin.first->GetDepthInMainChain());
                     dPriority += (double)nCredit * pcoin.first->GetDepthInMainChain();
                 }
 
-                int64 nChange = nValueIn - nValue - nTimeValueAdj - nFeeRet;
+                int64 nChange = nValueIn - nValue - nFeeRet;
                 // if sub-cent change is required, the fee must be raised to at least MIN_TX_FEE
                 // or until nChange becomes zero
                 // NOTE: this depends on the exact behaviour of GetMinFee

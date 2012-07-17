@@ -729,7 +729,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
             if (txout.scriptPubKey == scriptPubKey) {
                 int nTxDepth = wtx.GetDepthInMainChain();
                 if (nTxDepth >= nMinDepth)
-                    nAmount += txout.GetPresentValue(nTxDepth);
+                    nAmount += GetPresentValue(wtx, txout, nTxDepth);
             }
     }
 
@@ -779,7 +779,7 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
             if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address)) {
                 int nTxDepth = wtx.GetDepthInMainChain();
                 if (nTxDepth >= nMinDepth)
-                    nAmount += txout.GetPresentValue(nTxDepth);
+                    nAmount += GetPresentValue(wtx, txout, nTxDepth);
             }
         }
     }
@@ -1138,7 +1138,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
                 continue;
 
             tallyitem& item = mapTally[address];
-            item.nAmount += txout.GetPresentValue(wtx.GetDepthInMainChain());
+            item.nAmount += GetPresentValue(wtx, txout, wtx.GetDepthInMainChain());
             item.nConf = min(item.nConf, nDepth);
         }
     }
@@ -1979,7 +1979,7 @@ Value getmemorypool(const Array& params, bool fHelp)
         result.push_back(Pair("version", pblock->nVersion));
         result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
         result.push_back(Pair("transactions", transactions));
-        result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].GetPresentValue(0)));
+        result.push_back(Pair("coinbasevalue", (int64_t)GetPresentValue(pblock->vtx[0], pblock->vtx[0].vout[0], 0)));
         result.push_back(Pair("coinbaseflags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
         result.push_back(Pair("time", (int64_t)pblock->nTime));
         result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));

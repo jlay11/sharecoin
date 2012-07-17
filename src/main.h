@@ -79,6 +79,8 @@ class CReserveKey;
 class CTxDB;
 class CTxIndex;
 
+class CTxOut;
+
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false);
@@ -102,7 +104,8 @@ int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
-int64 GetPresentValue(int64 nInitialValue, int nRelativeDepth);
+int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth);
+int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth);
 
 
 
@@ -371,19 +374,12 @@ public:
         printf("%s\n", ToString().c_str());
     }
 
-    /** Amount of accessible freicoins after discount.
-
-        @return	Accessible freicoins after discount
-     */
-    int64 GetPresentValue(int nRelativeDepth) const
-    {
-        return ::GetPresentValue(nValue, nRelativeDepth);
-    }
-
     void SetInitialValue(int64 nInitialValue)
     {
         nValue = nInitialValue;
     }
+
+    friend int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth);
 };
 
 
@@ -532,7 +528,7 @@ public:
         int64 nValueOut = 0, nPresentValue;
         BOOST_FOREACH(const CTxOut& txout, vout)
         {
-            nPresentValue = txout.GetPresentValue(nRelativeDepth);
+            nPresentValue = GetPresentValue(*this, txout, nRelativeDepth);
             nValueOut += nPresentValue;
             if (!MoneyRange(nPresentValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
@@ -587,7 +583,7 @@ public:
         if (nMinFee < nBaseFee)
         {
             BOOST_FOREACH(const CTxOut& txout, vout)
-                if (txout.GetPresentValue(0) < CENT) // min tx fee context is calculating fees for a new block, depth is assumed to be zero
+                if (GetPresentValue(*this, txout, 0) < CENT) // min tx fee context is calculating fees for a new block, depth is assumed to be zero
                     nMinFee = nBaseFee;
         }
 
@@ -684,7 +680,7 @@ public:
      @return	Returns true if all inputs are in txdb or mapTestPool
      */
     bool FetchInputs(CTxDB& txdb, const std::map<uint256, CTxIndex>& mapTestPool,
-                     bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid);
+                     bool fBlock, bool fMiner, MapPrevTx& inputsRet, bool& fInvalid) const;
 
     /** Sanity check previous transactions, then, if all checks succeed,
         mark them as spent by this transaction.

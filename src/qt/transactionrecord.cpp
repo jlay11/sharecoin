@@ -53,7 +53,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 TransactionRecord sub(hash, nTime);
                 CTxDestination address;
                 sub.idx = parts.size(); // sequence number
-                sub.credit = txout.GetPresentValue(wtx.GetDepthInMainChain());
+                sub.credit = GetPresentValue(wtx, txout, wtx.GetDepthInMainChain());
                 if (wtx.IsCoinBase())
                 {
                     // Generated
@@ -128,7 +128,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     sub.address = mapValue["to"];
                 }
 
-                int64 nValue = txout.GetPresentValue(wtx.GetDepthInMainChain());
+                int64 nValue = GetPresentValue(wtx, txout, wtx.GetDepthInMainChain());
                 /* Add fee to first output */
                 if (nTxFee > 0)
                 {

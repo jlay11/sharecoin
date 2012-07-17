@@ -170,17 +170,17 @@ public:
     {
         return ::IsMine(*this, txout.scriptPubKey);
     }
-    int64 GetCredit(const CTxOut& txout, int nDepth) const
+    int64 GetCredit(const CTransaction& tx, const CTxOut& txout, int nDepth) const
     {
-        int64 nCredit = txout.GetPresentValue(nDepth);
+        int64 nCredit = GetPresentValue(tx, txout, nDepth);
         if (!MoneyRange(nCredit))
             throw std::runtime_error("CWallet::GetCredit() : value out of range");
         return (IsMine(txout) ? nCredit : 0);
     }
     bool IsChange(const CTxOut& txout) const;
-    int64 GetChange(const CTxOut& txout, int nDepth) const
+    int64 GetChange(const CTransaction& tx, const CTxOut& txout, int nDepth) const
     {
-        int64 nChange = txout.GetPresentValue(nDepth);
+        int64 nChange = GetPresentValue(tx, txout, nDepth);
         if (!MoneyRange(nChange))
             throw std::runtime_error("CWallet::GetChange() : value out of range");
         return (IsChange(txout) ? nChange : 0);
@@ -212,7 +212,7 @@ public:
         int64 nCredit = 0, nAmount;
         BOOST_FOREACH(const CTxOut& txout, tx.vout)
         {
-            nAmount = GetCredit(txout, nDepth);
+            nAmount = GetCredit(tx, txout, nDepth);
             nCredit += nAmount;
             if (!MoneyRange(nAmount) || !MoneyRange(nCredit))
                 throw std::runtime_error("CWallet::GetCredit() : value out of range");
@@ -224,7 +224,7 @@ public:
         int64 nChange = 0, nAmount;
         BOOST_FOREACH(const CTxOut& txout, tx.vout)
         {
-            nAmount = GetChange(txout, nDepth);
+            nAmount = GetChange(tx, txout, nDepth);
             nChange += nAmount;
             if (!MoneyRange(nAmount) || !MoneyRange(nChange))
                 throw std::runtime_error("CWallet::GetChange() : value out of range");
@@ -519,7 +519,7 @@ public:
             if (!IsSpent(i))
             {
                 const CTxOut &txout = vout[i];
-                nCredit += pwallet->GetCredit(txout, GetDepthInMainChain());
+                nCredit += pwallet->GetCredit(*this, txout, GetDepthInMainChain());
                 if (!MoneyRange(nCredit))
                     throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
             }
@@ -625,7 +625,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString().substr(0,10).c_str(), i, nDepth, FormatMoney(tx->vout[i].GetPresentValue(0)).c_str());
+        return strprintf("COutput(%s, %d, %d) [%s]", tx->GetHash().ToString().substr(0,10).c_str(), i, nDepth, FormatMoney(GetPresentValue(*tx, tx->vout[i], 0)).c_str());
     }
 
     void print() const
