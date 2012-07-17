@@ -435,6 +435,8 @@ bool CTransaction::CheckTransaction() const
     // Size limits
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
+    if (nFee < 0)
+    	return DoS(100, error("CTransaction::CheckTransaction() : nFee less than zero"));
 
     // Check for negative or overflow output values
     int64 nValueOut = 0, nOutput;

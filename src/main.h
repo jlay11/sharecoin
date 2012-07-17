@@ -405,6 +405,7 @@ public:
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
+    int64 nFee;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -422,6 +423,7 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
+        READWRITE(nFee);
     )
 
     void SetNull()
@@ -431,6 +433,7 @@ public:
         vout.clear();
         nLockTime = 0;
         nDoS = 0;  // Denial-of-service prevention
+        nFee = 0;
     }
 
     bool IsNull() const
