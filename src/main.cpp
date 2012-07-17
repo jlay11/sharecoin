@@ -435,6 +435,8 @@ bool CTransaction::CheckTransaction() const
     // Size limits
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
+    if (nFee < 0)
+    	return DoS(100, error("CTransaction::CheckTransaction() : nFee less than zero"));
 
     // Check for negative or overflow output values
     int64 nValueOut = 0, nOutput;
@@ -559,7 +561,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         // For the purposes of accept(), present value is calculated 1 block
         // in the future as a minimum estimate of how long it might take for
         // transaction to be included in a block.
-        int64 nFees = tx.GetValueIn(mapInputs, nBestHeight+1)-tx.GetValueOut(0);
+        int64 nFees = tx.nFee;
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
         // Don't accept it if it can't get into a block
@@ -1221,7 +1223,6 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
-        int64 nFees = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
@@ -1240,7 +1241,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
 
         }
         int64 nValueIn = GetValueIn(inputs, pindexBlock->nHeight);
-        if (!MoneyRange(nValueIn))
+                if (!MoneyRange(nValueIn))
             return DoS(100, error("ConnectInputs() : txin values out of range"));
         // The first loop above does all the inexpensive checks.
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
@@ -1287,14 +1288,10 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
 
         if (nValueIn < GetValueOut(0))
             return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
-
-        // Tally transaction fees
-        int64 nTxFee = nValueIn - GetValueOut(0);
-        if (nTxFee < 0)
-            return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
-        nFees += nTxFee;
-        if (!MoneyRange(nFees))
-            return DoS(100, error("ConnectInputs() : nFees out of range"));
+        if (nFee < 0)
+            return DoS(100, error("ConnectInputs() : %s nFee < 0", GetHash().ToString().substr(0,10).c_str()));
+        if (!MoneyRange(nFee))
+            return DoS(100, error("ConnectInputs() : nFee out of range"));
     }
 
     return true;
@@ -1444,7 +1441,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
                     return DoS(100, error("ConnectBlock() : too many sigops"));
             }
 
-            nFees += tx.GetValueIn(mapInputs, pindex->nHeight)-tx.GetValueOut(0);
+            nFees += tx.nFee;
 
             if (!tx.ConnectInputs(mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
@@ -3501,8 +3498,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
                 continue;
 
-            int64 nTxFees = tx.GetValueIn(mapInputs, pindexPrev->nHeight+1)-tx.GetValueOut(0);
-            if (nTxFees < nMinFee)
+            if (tx.nFee < nMinFee)
                 continue;
 
             nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
@@ -3519,7 +3515,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             nBlockSize += nTxSize;
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
-            nFees += nTxFees;
+            nFees += tx.nFee;
 
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
