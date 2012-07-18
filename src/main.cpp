@@ -1362,7 +1362,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             }
         }
 
-        if ( nValueIn < GetValueOut(0) )
+        if ( nValueIn < GetValueOut(1) )
             return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
 
         // Tally transaction fees
@@ -1425,7 +1425,7 @@ bool CTransaction::ClientConnectInputs(CTxDB& txdb, int nBlockHeight)
         if (!MoneyRange(nValueIn))
             return error("ClientConnectInputs() : txin values out of range");
 
-        if (GetValueOut(0) > nValueIn)
+        if (GetValueOut(1) > nValueIn)
             return false;
     }
 
@@ -1536,7 +1536,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             return error("ConnectBlock() : UpdateTxIndex failed");
     }
 
-    if (vtx[0].GetValueOut(0) > GetBlockValue(pindex->nHeight, nFees))
+    if (vtx[0].GetValueOut(1) > GetBlockValue(pindex->nHeight, nFees))
         return false;
 
     // Update block index on disk without changing it in memory.
