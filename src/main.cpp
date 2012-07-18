@@ -1224,6 +1224,7 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
         if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
             throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
         nValue = mpfr_get_sj(mp, MPFR_RNDZ);
+        mpfr_clears(in, out, fee, mp, (mpfr_ptr) 0);
     }
 
     return GetTimeValueAdjustment(nValue, nRelativeDepth);
