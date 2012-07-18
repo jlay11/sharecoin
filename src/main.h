@@ -637,7 +637,7 @@ public:
                 a.vin       == b.vin &&
                 a.vout      == b.vout &&
                 a.nLockTime == b.nLockTime &&
-                a.nFee == b.nFee);
+                a.nFee      == b.nFee);
     }
 
     friend bool operator!=(const CTransaction& a, const CTransaction& b)
