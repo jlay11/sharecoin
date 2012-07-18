@@ -186,9 +186,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                     strHTML += "<b>" + tr("Credit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, nValue) + "<br>";
                 }
 
-                int64 nTxFee = nDebit - wtx.GetValueOut(wtx.GetDepthInMainChain());
-                if (nTxFee > 0)
-                    strHTML += "<b>" + tr("Transaction fee") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -nTxFee) + "<br>";
+                if (wtx.nFee > 0)
+                    strHTML += "<b>" + tr("Transaction fee") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -wtx.nFee) + "<br>";
             }
             else
             {

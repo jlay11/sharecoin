@@ -558,10 +558,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        // For the purposes of accept(), present value is calculated 1 block
-        // in the future as a minimum estimate of how long it might take for
-        // transaction to be included in a block.
-        int64 nFees = tx.GetValueIn(mapInputs, nBestHeight+1)-tx.GetValueOut(0);
+        int64 nFees = tx.nFee;
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
         // Don't accept it if it can't get into a block
@@ -1219,8 +1216,8 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
         mpfr_set_sj(in,  (intmax_t) nValueIn,  MPFR_RNDN);
         mpfr_set_sj(out, (intmax_t) nValueOut, MPFR_RNDN);
         mpfr_set_sj(fee, (intmax_t) tx.nFee,   MPFR_RNDN);
-        mpfr_add(    mp, out, fee,             MPFR_RNDN);
-        mpfr_div(    mp,  in,  mp,             MPFR_RNDN);
+        mpfr_sub(    mp, in, fee,              MPFR_RNDN);
+        mpfr_div(    mp, mp, out,              MPFR_RNDN);
 
         mpfr_set_sj(out, (intmax_t) nValue,    MPFR_RNDN);
         mpfr_mul(    mp, out,  mp,             MPFR_RNDN);
@@ -1366,11 +1363,10 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
 
         // Tally transaction fees
-        int64 nTxFee = nValueIn - GetValueOut(0);
-        if (nTxFee < 0)
+        if ( nFee < 0 )
             return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
-        nFees += nTxFee;
-        if (!MoneyRange(nFees))
+        nFees += nFee;
+        if ( ! MoneyRange(nFees) )
             return DoS(100, error("ConnectInputs() : nFees out of range"));
     }
 
@@ -1521,7 +1517,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
                     return DoS(100, error("ConnectBlock() : too many sigops"));
             }
 
-            nFees += tx.GetValueIn(mapInputs, pindex->nHeight)-tx.GetValueOut(0);
+            nFees += tx.nFee;
 
             if (!tx.ConnectInputs(mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
@@ -3578,8 +3574,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
                 continue;
 
-            int64 nTxFees = tx.GetValueIn(mapInputs, pindexPrev->nHeight+1)-tx.GetValueOut(0);
-            if (nTxFees < nMinFee)
+            if ( tx.nFee < nMinFee )
                 continue;
 
             nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
@@ -3596,7 +3591,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             nBlockSize += nTxSize;
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
-            nFees += nTxFees;
+            nFees += tx.nFee;
 
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
