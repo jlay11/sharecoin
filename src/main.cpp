@@ -1220,7 +1220,7 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
         mpfr_div(    mp, mp, out,              MPFR_RNDN);
 
         mpfr_set_sj(out, (intmax_t) nValue,    MPFR_RNDN);
-        mpfr_mul(    mp, out,  mp,             MPFR_RNDN);
+        mpfr_mul(    mp, out, mp,              MPFR_RNDN);
         if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
             throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
         nValue = mpfr_get_sj(mp, MPFR_RNDN);
@@ -1359,7 +1359,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             }
         }
 
-        if (nValueIn < GetValueOut(0))
+        if ( nValueIn < GetValueOut(0) )
             return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
 
         // Tally transaction fees
@@ -3466,11 +3466,11 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
 
     // Create coinbase tx
     CTransaction txNew;
-    txNew.nFee = 0;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
+    txNew.nFee = 0;
 
     // Add our coinbase tx as first transaction
     pblock->vtx.push_back(txNew);
