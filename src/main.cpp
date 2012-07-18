@@ -1136,7 +1136,7 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
 int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth)
 {
     int64 nResult;
-    if ( !nRelativeDepth )
+    if ( 0 == nRelativeDepth )
         nResult = nInitialValue;
     else {
         mpfr_t rate, mp, init;
