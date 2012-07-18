@@ -1250,14 +1250,16 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
             nRelativeDepth = 0;
         } else {
             map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
+
             if ( mi == mapBlockIndex.end() )
-                throw std::runtime_error("CTransaction::GetValueIn() : hashBlock not found");
+                nRelativeDepth = 0;
+            else {
+                pPrevBlock = (*mi).second;
+                if ( pPrevBlock->nHeight > nBlockHeight )
+                    throw std::runtime_error("CTransaction::GetValueIn() : pPrevBlock->nHeight greater than requested height");
 
-            pPrevBlock = (*mi).second;
-            if ( pPrevBlock->nHeight > nBlockHeight )
-                throw std::runtime_error("CTransaction::GetValueIn() : pPrevBlock->nHeight greater than requested height");
-
-            nRelativeDepth = nBlockHeight - pPrevBlock->nHeight;
+                nRelativeDepth = nBlockHeight - pPrevBlock->nHeight;
+            }
         }
 
         nInput   = GetPresentValue(tx, txOut, nRelativeDepth);
