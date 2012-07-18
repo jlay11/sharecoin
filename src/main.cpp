@@ -1226,7 +1226,7 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
         nValue = mpfr_get_sj(mp, MPFR_RNDN);
     }
 
-    return GetTimeValueAdjustment(output.nValue, nRelativeDepth);
+    return GetTimeValueAdjustment(nValue, nRelativeDepth);
 }
 
 int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
