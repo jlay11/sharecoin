@@ -1146,9 +1146,9 @@ int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth)
         mpfr_pow_si(mp, rate,            nRelativeDepth, MPFR_RNDN);
         mpfr_set_sj(init,     (intmax_t) nInitialValue,  MPFR_RNDN);
         mpfr_mul   (mp,   mp, init,                      MPFR_RNDN);
-        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
+        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
             throw std::runtime_error("GetTimeValueAdjustment() : adjusted value does not fit in intmax_t");
-        nResult = mpfr_get_sj(mp,                        MPFR_RNDN);
+        nResult = mpfr_get_sj(mp,                        MPFR_RNDZ);
         mpfr_clears(rate, mp, init, (mpfr_ptr) 0);
     }
     return nResult;
@@ -1221,9 +1221,9 @@ int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativ
 
         mpfr_set_sj(out, (intmax_t) nValue,    MPFR_RNDN);
         mpfr_mul(    mp, out, mp,              MPFR_RNDN);
-        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDN) )
+        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
             throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
-        nValue = mpfr_get_sj(mp, MPFR_RNDN);
+        nValue = mpfr_get_sj(mp, MPFR_RNDZ);
     }
 
     return GetTimeValueAdjustment(nValue, nRelativeDepth);
