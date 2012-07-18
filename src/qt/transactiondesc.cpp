@@ -40,8 +40,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         strHTML += "<html><font face='verdana, arial, helvetica, sans-serif'>";
 
         int64 nTime = wtx.GetTxTime();
-        int64 nCredit = wtx.GetCredit();
-        int64 nDebit = wtx.GetDebit();
+        int64 nCredit = wtx.GetCredit(wtx.GetDepthInMainChain());
+        int64 nDebit = wtx.GetDebit(wtx.GetDepthInMainChain());
         int64 nNet = nCredit - nDebit;
 
         strHTML += "<b>" + tr("Status") + ":</b> " + FormatTxStatus(wtx);
@@ -196,7 +196,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
                 //
                 BOOST_FOREACH(const CTxIn& txin, wtx.vin)
                     if (wallet->IsMine(txin))
-                        strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -wallet->GetDebit(txin)) + "<br>";
+                        strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -wallet->GetDebit(txin,wtx.GetDepthInMainChain())) + "<br>";
                 BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                     if (wallet->IsMine(txout))
                         strHTML += "<b>" + tr("Credit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, wallet->GetCredit(wtx,txout,wtx.GetDepthInMainChain())) + "<br>";
@@ -226,7 +226,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             strHTML += "<hr><br>" + tr("Debug information") + "<br><br>";
             BOOST_FOREACH(const CTxIn& txin, wtx.vin)
                 if(wallet->IsMine(txin))
-                    strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -wallet->GetDebit(txin)) + "<br>";
+                    strHTML += "<b>" + tr("Debit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, -wallet->GetDebit(txin,wtx.GetDepthInMainChain())) + "<br>";
             BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                 if(wallet->IsMine(txout))
                     strHTML += "<b>" + tr("Credit") + ":</b> " + FreicoinUnits::formatWithUnit(FreicoinUnits::FRC, wallet->GetCredit(wtx,txout,wtx.GetDepthInMainChain())) + "<br>";

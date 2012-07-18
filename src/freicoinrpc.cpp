@@ -800,7 +800,8 @@ int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nMinD
             continue;
 
         int64 nGenerated, nReceived, nSent, nFee;
-        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee);
+        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee,
+                              wtx.GetDepthInMainChain());
 
         if (nReceived != 0 && wtx.GetDepthInMainChain() >= nMinDepth)
             nBalance += nReceived;
@@ -851,7 +852,8 @@ Value getbalance(const Array& params, bool fHelp)
             string strSentAccount;
             list<pair<CTxDestination, int64> > listReceived;
             list<pair<CTxDestination, int64> > listSent;
-            wtx.GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent, allFee, strSentAccount);
+            wtx.GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent,
+                           allFee, strSentAccount, wtx.GetDepthInMainChain());
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
                 BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64)& r, listReceived)
@@ -1138,7 +1140,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
                 continue;
 
             tallyitem& item = mapTally[address];
-            item.nAmount += GetPresentValue(wtx, txout, wtx.GetDepthInMainChain());
+            item.nAmount += GetPresentValue(wtx, txout, nDepth);
             item.nConf = min(item.nConf, nDepth);
         }
     }
@@ -1234,7 +1236,8 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     list<pair<CTxDestination, int64> > listReceived;
     list<pair<CTxDestination, int64> > listSent;
 
-    wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount);
+    wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent,
+                   nFee, strSentAccount, wtx.GetDepthInMainChain());
 
     bool fAllAccounts = (strAccount == string("*"));
 
@@ -1414,7 +1417,8 @@ Value listaccounts(const Array& params, bool fHelp)
         string strSentAccount;
         list<pair<CTxDestination, int64> > listReceived;
         list<pair<CTxDestination, int64> > listSent;
-        wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent, nFee, strSentAccount);
+        wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent,
+                       nFee, strSentAccount, wtx.GetDepthInMainChain());
         mapAccountBalances[strSentAccount] -= nFee;
         BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64)& s, listSent)
             mapAccountBalances[strSentAccount] -= s.second;
@@ -1519,10 +1523,10 @@ Value gettransaction(const Array& params, bool fHelp)
         throw JSONRPCError(-5, "Invalid or non-wallet transaction id");
     const CWalletTx& wtx = pwalletMain->mapWallet[hash];
 
-    int64 nCredit = wtx.GetCredit();
-    int64 nDebit = wtx.GetDebit();
+    int64 nCredit = wtx.GetCredit(wtx.GetDepthInMainChain());
+    int64 nDebit = wtx.GetDebit(wtx.GetDepthInMainChain());
     int64 nNet = nCredit - nDebit;
-    int64 nFee = (wtx.IsFromMe() ? wtx.nFee : 0);
+    int64 nFee = (wtx.IsFromMe() ? GetTimeValueAdjustment(wtx.nFee, wtx.GetDepthInMainChain()) : 0);
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe())
