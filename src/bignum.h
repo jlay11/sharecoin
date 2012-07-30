@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <vector>
 #include <openssl/bn.h>
+
+#include <stdint.h>
+#define MPFR_USE_INTMAX_T
 #include <mpfr.h>
 
 #include "util.h" // for uint64
