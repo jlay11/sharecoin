@@ -448,7 +448,7 @@
   <customwidget>
    <class>FreicoinAmountField</class>
    <extends>QSpinBox</extends>
-   <header>Freicoinamountfield.h</header>
+   <header>freicoinamountfield.h</header>
   </customwidget>
   <customwidget>
    <class>QValueComboBox</class>
