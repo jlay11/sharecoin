@@ -21,7 +21,7 @@ LIBPATHS= \
 
 USE_UPNP:=1
 
-LIBS= -dead_strip -lgmp -lmpfr
+LIBS= -dead_strip -lmpfr -lgmp
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 

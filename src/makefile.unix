@@ -46,8 +46,8 @@ LIBS+= \
    -l z \
    -l dl \
    -l pthread \
-   -l gmp \
-   -l mpfr
+   -l mpfr \
+   -l gmp
 
 
 # Hardening
