@@ -31,7 +31,9 @@ LIBS += \
    -lboost_thread$(BOOST_LIB_SUFFIX) \
    -ldb_cxx$(BDB_LIB_SUFFIX) \
    -lssl \
-   -lcrypto
+   -lcrypto \
+   -lmpfr \
+   -lgmp
 
 ifndef USE_UPNP
 	override USE_UPNP = -
@@ -46,8 +48,6 @@ LIBS+= \
    -lz \
    -ldl \
    -lpthread \
-   -lmpfr \
-   -lgmp
 
 
 # Hardening

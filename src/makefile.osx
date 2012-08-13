@@ -21,7 +21,7 @@ LIBPATHS= \
 
 USE_UPNP:=1
 
-LIBS= -dead_strip -lmpfr -lgmp
+LIBS= -dead_strip
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
@@ -37,6 +37,8 @@ LIBS += \
  $(DEPSDIR)/lib/libboost_thread-mt.a \
  $(DEPSDIR)/lib/libssl.a \
  $(DEPSDIR)/lib/libcrypto.a \
+ $(DEPSDIR)/lib/libmpfr.a \
+ $(DEPSDIR)/lib/libgmp.a \
  -lz
 else
 TESTLIBS += \
@@ -49,6 +51,8 @@ LIBS += \
  -lboost_thread-mt \
  -lssl \
  -lcrypto \
+ -lmpfr \
+ -lgmp \
  -lz
 TESTDEFS += -DBOOST_TEST_DYN_LINK
 endif
