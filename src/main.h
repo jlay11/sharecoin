@@ -104,8 +104,8 @@ int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
-int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth);
-int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth);
+int64 GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth);
+int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight);
 
 
 
@@ -312,10 +312,8 @@ public:
 class CTxOut
 {
 
-private:
-	int64 nValue;
-
 public:
+    int64 nValue;
     CScript scriptPubKey;
 
     CTxOut()
@@ -378,8 +376,6 @@ public:
     {
         nValue = nInitialValue;
     }
-
-    friend int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth);
 };
 
 
@@ -405,7 +401,7 @@ public:
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     unsigned int nLockTime;
-    int64 nFee;
+    int64 nRefHeight;
 
     // Denial-of-service detection:
     mutable int nDoS;
@@ -423,7 +419,7 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
-        READWRITE(nFee);
+        READWRITE(nRefHeight);
     )
 
     void SetNull()
@@ -433,7 +429,7 @@ public:
         vout.clear();
         nLockTime = 0;
         nDoS = 0;  // Denial-of-service prevention
-        nFee = 0;
+        nRefHeight = 0;
     }
 
     bool IsNull() const
@@ -526,12 +522,12 @@ public:
     /** Amount of freicoins spent by this transaction.
         @return sum of all outputs (note: does not include fees)
      */
-    int64 GetValueOut(int nRelativeDepth) const
+    int64 GetValueOut() const
     {
         int64 nValueOut = 0, nPresentValue;
         BOOST_FOREACH(const CTxOut& txout, vout)
         {
-            nPresentValue = GetPresentValue(*this, txout, nRelativeDepth);
+            nPresentValue = GetPresentValue(*this, txout, nRefHeight);
             nValueOut += nPresentValue;
             if (!MoneyRange(nPresentValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
@@ -547,7 +543,7 @@ public:
         @return	Sum of value of all inputs (scriptSigs)
         @see CTransaction::FetchInputs
      */
-    int64 GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const;
+    int64 GetValueIn(const MapPrevTx& inputs) const;
 
     static bool AllowFree(double dPriority)
     {
@@ -586,7 +582,7 @@ public:
         if (nMinFee < nBaseFee)
         {
             BOOST_FOREACH(const CTxOut& txout, vout)
-                if (GetPresentValue(*this, txout, 0) < CENT) // min tx fee context is calculating fees for a new block, depth is assumed to be zero
+                if (GetPresentValue(*this, txout, nBestHeight) < CENT) // min tx fee context is calculating fees for a new block
                     nMinFee = nBaseFee;
         }
 
@@ -633,11 +629,11 @@ public:
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
-        return (a.nVersion  == b.nVersion &&
-                a.vin       == b.vin &&
-                a.vout      == b.vout &&
-                a.nLockTime == b.nLockTime &&
-                a.nFee      == b.nFee);
+        return (a.nVersion   == b.nVersion &&
+                a.vin        == b.vin &&
+                a.vout       == b.vout &&
+                a.nLockTime  == b.nLockTime &&
+                a.nRefHeight == b.nRefHeight);
     }
 
     friend bool operator!=(const CTransaction& a, const CTransaction& b)
@@ -649,13 +645,13 @@ public:
     std::string ToString() const
     {
         std::string str;
-        str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%d, vout.size=%d, nLockTime=%d, nFee=%d)\n",
+        str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%d, vout.size=%d, nLockTime=%d, nRefHeight=%d)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nVersion,
             vin.size(),
             vout.size(),
             nLockTime,
-            nFee);
+            nRefHeight);
         for (unsigned int i = 0; i < vin.size(); i++)
             str += "    " + vin[i].ToString() + "\n";
         for (unsigned int i = 0; i < vout.size(); i++)

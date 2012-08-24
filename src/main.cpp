@@ -435,19 +435,18 @@ bool CTransaction::CheckTransaction() const
     // Size limits
     if (::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return DoS(100, error("CTransaction::CheckTransaction() : size limits failed"));
-    if (nFee < 0)
-    	return DoS(100, error("CTransaction::CheckTransaction() : nFee less than zero"));
+    if (nRefHeight < 0)
+    	return DoS(100, error("CTransaction::CheckTransaction() : nRefHeight less than zero"));
 
     // Check for negative or overflow output values
-    int64 nValueOut = 0, nOutput;
+    int64 nValueOut = 0;
     BOOST_FOREACH(const CTxOut& txout, vout)
     {
-        nOutput = GetPresentValue(*this, txout, 0);
-        if (nOutput < 0)
+        if (txout.nValue < 0)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue negative"));
-        if (nOutput > MAX_MONEY)
+        if (txout.nValue > MAX_MONEY)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue too high"));
-        nValueOut += nOutput;
+        nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut))
             return DoS(100, error("CTransaction::CheckTransaction() : txout total out of range"));
     }
@@ -484,6 +483,9 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
 
     if (!tx.CheckTransaction())
         return error("CTxMemPool::accept() : CheckTransaction failed");
+
+    if ( tx.nRefHeight > (nBestHeight + 20) )
+        return error("CTxMemPool::accept() : tx.nRefHeight too high");
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
@@ -558,7 +560,7 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        int64 nFees = tx.nFee;
+        int64 nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
         // Don't accept it if it can't get into a block
@@ -1133,7 +1135,7 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
     return txPrev.vout[input.prevout.n];
 }
 
-int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth)
+int64 GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth)
 {
     int64 nResult;
     if ( 0 == nRelativeDepth )
@@ -1147,90 +1149,19 @@ int64 GetTimeValueAdjustment(int64 nInitialValue, int nRelativeDepth)
         mpfr_set_sj(init,     (intmax_t) nInitialValue,  MPFR_RNDN);
         mpfr_mul   (mp,   mp, init,                      MPFR_RNDN);
         if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
-            throw std::runtime_error("GetTimeValueAdjustment() : adjusted value does not fit in intmax_t");
+            throw std::runtime_error("GetTimeAdjustedValue() : adjusted value does not fit in intmax_t");
         nResult = mpfr_get_sj(mp,                        MPFR_RNDZ);
         mpfr_clears(rate, mp, init, (mpfr_ptr) 0);
     }
     return nResult;
 }
 
-int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nRelativeDepth)
+int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight)
 {
-    int64 nValue = output.nValue;
-
-    // If this is a coinbase output, then skip to the end; coinbase outputs
-    // create new coins and have no inputs, so there are no input values to
-    // adjust. This also provides a termination condition for recursion caused
-    // by calling CTransaction::GetValueIn().
-    if ( ! tx.IsCoinBase() ) {
-        int64 nValueIn;      // tx.GetValueIn()
-        int64 nValueOut = 0; // sum(txout.nValue for txout in tx.vout)
-
-        // TODO: retrieve nValueIn, nValueOut from cache (if present)
-        bool fCache = false;
-
-        if ( ! fCache ) {
-            // Inputs for tx.GetValueIn(), which we need to fill in.
-            MapPrevTx mapInputs;
-            int       nBlockHeight;
-
-            uint256   hashBlock = 0;
-            CTxDB     txdb("r");
-
-            CTransaction txUnused;
-            if ( ! GetTransaction(tx.GetHash(), txUnused, hashBlock) || 0 == hashBlock )
-                nBlockHeight = nBestHeight; // Transaction not in block chain
-            else {
-                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
-                if ( mi == mapBlockIndex.end() )
-                    throw std::runtime_error("GetPresentValue() : hashBlock not found");
-
-                nBlockHeight = (*mi).second->nHeight;
-            }
-
-            map<uint256, CTxIndex> mapUnused;
-            bool fInvalid = false;
-            if ( ! tx.FetchInputs(txdb, mapUnused, false, false, mapInputs, fInvalid) ) {
-                if (fInvalid)
-                    throw std::runtime_error("GetPresentValue() : FetchInputs found invalid tx");
-                else
-                    throw std::runtime_error("GetPresentValue() : FetchInputs failed to find inputs");
-            }
-
-            nValueIn = tx.GetValueIn(mapInputs, nBlockHeight);
-
-            BOOST_FOREACH(const CTxOut& txout, tx.vout) {
-                int64 nOut = txout.nValue;
-                nValueOut += nOut;
-                if (!MoneyRange(nOut))
-                    throw std::runtime_error("GetPresentValue() : output value out of range");
-                if (!MoneyRange(nValueOut))
-                    throw std::runtime_error("GetPresentValue() : overflow of output total");
-            }
-        }
-
-        // TODO: cache nValueIn and nValueOut for future use
-
-        mpfr_t in, out, fee, mp;
-        mpfr_inits2(113, in, out, fee, mp, (mpfr_ptr) 0);
-        mpfr_set_sj(in,  (intmax_t) nValueIn,  MPFR_RNDN);
-        mpfr_set_sj(out, (intmax_t) nValueOut, MPFR_RNDN);
-        mpfr_set_sj(fee, (intmax_t) tx.nFee,   MPFR_RNDN);
-        mpfr_sub(    mp, in, fee,              MPFR_RNDN);
-        mpfr_div(    mp, mp, out,              MPFR_RNDN);
-
-        mpfr_set_sj(out, (intmax_t) nValue,    MPFR_RNDN);
-        mpfr_mul(    mp, out, mp,              MPFR_RNDN);
-        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
-            throw std::runtime_error("GetPresentValue() : present value does not fit in intmax_t");
-        nValue = mpfr_get_sj(mp, MPFR_RNDZ);
-        mpfr_clears(in, out, fee, mp, (mpfr_ptr) 0);
-    }
-
-    return GetTimeValueAdjustment(nValue, nRelativeDepth);
+    return GetTimeAdjustedValue(output.nValue, nBlockHeight-tx.nRefHeight);
 }
 
-int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
+int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
 {
     if (IsCoinBase())
         return 0;
@@ -1238,32 +1169,16 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs, int nBlockHeight) const
     int64 nResult = 0, nInput;
     for (unsigned int i = 0; i < vin.size(); i++)
     {
-        CTransaction        tx;
-        const CTxOut&       txOut = GetOutputFor(vin[i], inputs);
-        const CBlockIndex  *pPrevBlock;
-        uint256 hashPrevBlock = 0;
-        int     nRelativeDepth;
+        MapPrevTx::const_iterator mi = inputs.find(vin[i].prevout.hash);
+        if (mi == inputs.end())
+            throw std::runtime_error("CTransaction::GetValueIn() : prevout.hash not found");
 
-        if ( !GetTransaction(vin[i].prevout.hash, tx, hashPrevBlock) ) {
-            if ( nBlockHeight < nBestHeight )
-                throw std::runtime_error("CTransaction::GetValueIn() : input not in block chain");
+        const CTransaction& txPrev = (mi->second).second;
+        if (vin[i].prevout.n >= txPrev.vout.size())
+            throw std::runtime_error("CTransaction::GetValueIn() : prevout.n out of range");
 
-            nRelativeDepth = 0;
-        } else {
-            map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
-
-            if ( mi == mapBlockIndex.end() )
-                nRelativeDepth = 0;
-            else {
-                pPrevBlock = (*mi).second;
-                if ( pPrevBlock->nHeight > nBlockHeight )
-                    throw std::runtime_error("CTransaction::GetValueIn() : pPrevBlock->nHeight greater than requested height");
-
-                nRelativeDepth = nBlockHeight - pPrevBlock->nHeight;
-            }
-        }
-
-        nInput   = GetPresentValue(tx, txOut, nRelativeDepth);
+        const CTxOut& txOut = txPrev.vout[vin[i].prevout.n];
+        nInput   = GetPresentValue(txPrev, txOut, nRefHeight);
         nResult += nInput;
         // Check for negative or overflow input values
         if (!MoneyRange(nInput) || !MoneyRange(nResult))
@@ -1298,7 +1213,6 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
     // ... both are false when called from CTransaction::AcceptToMemoryPool
     if (!IsCoinBase())
     {
-        int64 nFees = 0;
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
@@ -1316,9 +1230,11 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
                         return error("ConnectInputs() : tried to spend coinbase at depth %d", pindexBlock->nHeight - pindex->nHeight);
 
         }
-        int64 nValueIn = GetValueIn(inputs, pindexBlock->nHeight);
-        if (!MoneyRange(nValueIn))
+        int64 nValueIn = GetValueIn(inputs);
+        if ( ! MoneyRange(nValueIn) )
             return DoS(100, error("ConnectInputs() : txin values out of range"));
+        if ( GetValueOut() > nValueIn )
+            return DoS(100, error("ConnectInputs() : txout larger than txin"));
         // The first loop above does all the inexpensive checks.
         // Only if ALL inputs pass do we perform expensive ECDSA signature checks.
         // Helps prevent CPU exhaustion attacks.
@@ -1328,6 +1244,9 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             assert(inputs.count(prevout.hash) > 0);
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
+
+            if ( txPrev.nRefHeight > nRefHeight )
+                return DoS(100, error("ConnectInputs() : input height less than output height"));
 
             // Check for conflicts (double-spend)
             // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
@@ -1362,15 +1281,6 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
             }
         }
 
-        if ( nValueIn < GetValueOut(1) )
-            return DoS(100, error("ConnectInputs() : %s value in < value out", GetHash().ToString().substr(0,10).c_str()));
-
-        // Tally transaction fees
-        if ( nFee < 0 )
-            return DoS(100, error("ConnectInputs() : %s nTxFee < 0", GetHash().ToString().substr(0,10).c_str()));
-        nFees += nFee;
-        if ( ! MoneyRange(nFees) )
-            return DoS(100, error("ConnectInputs() : nFees out of range"));
     }
 
     return true;
@@ -1421,12 +1331,18 @@ bool CTransaction::ClientConnectInputs(CTxDB& txdb, int nBlockHeight)
             return false;
         }
 
-        int64 nValueIn = GetValueIn(mapInputs, nBlockHeight);
-        if (!MoneyRange(nValueIn))
-            return error("ClientConnectInputs() : txin values out of range");
+        for (unsigned int i = 0; i < vin.size(); i++)
+        {
+            CTransaction& txPrev = mapInputs[vin[i].prevout.hash].second;
+            if ( txPrev.nRefHeight > nRefHeight )
+                return DoS(100, error("ConnectInputs() : input height less than output height"));
+        }
 
-        if (GetValueOut(1) > nValueIn)
-            return false;
+        int64 nValueIn = GetValueIn(mapInputs);
+        if ( ! MoneyRange(nValueIn) )
+            return error("ClientConnectInputs() : txin values out of range");
+        if ( GetValueOut() > nValueIn )
+            return error("ClientConnectInputs() : value out larger than value in");
     }
 
     return true;
@@ -1520,7 +1436,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
                     return DoS(100, error("ConnectBlock() : too many sigops"));
             }
 
-            nFees += tx.nFee;
+            if ( tx.nRefHeight > pindex->nHeight )
+                return DoS(100, error("ConnectBlock() : tx height > block height"));
+
+            nFees += GetTimeAdjustedValue(tx.GetValueIn(mapInputs)-tx.GetValueOut(), pindex->nHeight - tx.nRefHeight);
 
             if (!tx.ConnectInputs(mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
@@ -1536,7 +1455,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex)
             return error("ConnectBlock() : UpdateTxIndex failed");
     }
 
-    if (vtx[0].GetValueOut(1) > GetBlockValue(pindex->nHeight, nFees))
+    if (vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees))
         return false;
 
     // Update block index on disk without changing it in memory.
@@ -2131,6 +2050,7 @@ bool LoadBlockIndex(bool fAllowNew)
         // Genesis block
         const char* pszTimestamp = "Telegraph 27/Jun/2012 Barclays hit with \xc2\xa3""290m fine over Libor fixing";
         CTransaction txNew;
+        txNew.nRefHeight = 0;
         txNew.vin .resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript()
@@ -3467,13 +3387,15 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     if (!pblock.get())
         return NULL;
 
+    int nHeight = pindexPrev->nHeight + 1;
+
     // Create coinbase tx
     CTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
     txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
-    txNew.nFee = 0;
+    txNew.nRefHeight = nHeight;
 
     // Add our coinbase tx as first transaction
     pblock->vtx.push_back(txNew);
@@ -3518,7 +3440,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
                 // Read block header
                 int nConf = txindex.GetDepthInMainChain();
 
-                int64 nValueIn = GetPresentValue(txPrev, txPrev.vout[txin.prevout.n], nConf);
+                int64 nValueIn = GetPresentValue(txPrev, txPrev.vout[txin.prevout.n], nHeight);
 
                 dPriority += (double)nValueIn * nConf;
 
@@ -3555,6 +3477,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             CTransaction& tx = *(*mapPriority.begin()).second;
             mapPriority.erase(mapPriority.begin());
 
+            // Invalid height
+            if ( tx.nRefHeight > nHeight )
+                continue;
+
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
             if (nBlockSize + nTxSize >= MAX_BLOCK_SIZE_GEN)
@@ -3577,7 +3503,8 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
                 continue;
 
-            if ( tx.nFee < nMinFee )
+            int64 nTxFees = GetTimeAdjustedValue(tx.GetValueIn(mapInputs)-tx.GetValueOut(), nHeight-tx.nRefHeight);
+            if ( nTxFees < nMinFee )
                 continue;
 
             nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
@@ -3594,7 +3521,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             nBlockSize += nTxSize;
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
-            nFees += tx.nFee;
+            nFees += nTxFees;
 
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
@@ -3705,7 +3632,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     printf("FreicoinMiner:\n");
     printf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex().c_str(), hashTarget.GetHex().c_str());
     pblock->print();
-    printf("generated %s\n", FormatMoney(GetPresentValue(pblock->vtx[0], pblock->vtx[0].vout[0], 0)).c_str());
+    printf("generated %s\n", FormatMoney(pblock->vtx[0].GetValueOut()).c_str());
 
     // Found a solution
     {

@@ -727,9 +727,8 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             if (txout.scriptPubKey == scriptPubKey) {
-                int nTxDepth = wtx.GetDepthInMainChain();
-                if (nTxDepth >= nMinDepth)
-                    nAmount += GetPresentValue(wtx, txout, nTxDepth);
+                if (wtx.GetDepthInMainChain() >= nMinDepth)
+                    nAmount += GetPresentValue(wtx, txout, nBestHeight);
             }
     }
 
@@ -777,9 +776,8 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
         {
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address)) {
-                int nTxDepth = wtx.GetDepthInMainChain();
-                if (nTxDepth >= nMinDepth)
-                    nAmount += GetPresentValue(wtx, txout, nTxDepth);
+                if (wtx.GetDepthInMainChain() >= nMinDepth)
+                    nAmount += GetPresentValue(wtx, txout, nBestHeight);
             }
         }
     }
@@ -1140,7 +1138,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
                 continue;
 
             tallyitem& item = mapTally[address];
-            item.nAmount += GetPresentValue(wtx, txout, nDepth);
+            item.nAmount += GetPresentValue(wtx, txout, nBestHeight);
             item.nConf = min(item.nConf, nDepth);
         }
     }
@@ -1523,10 +1521,10 @@ Value gettransaction(const Array& params, bool fHelp)
         throw JSONRPCError(-5, "Invalid or non-wallet transaction id");
     const CWalletTx& wtx = pwalletMain->mapWallet[hash];
 
-    int64 nCredit = wtx.GetCredit(wtx.GetDepthInMainChain());
-    int64 nDebit = wtx.GetDebit(wtx.GetDepthInMainChain());
+    int64 nCredit = wtx.GetCredit(nBestHeight);
+    int64 nDebit = wtx.GetDebit(nBestHeight);
     int64 nNet = nCredit - nDebit;
-    int64 nFee = (wtx.IsFromMe() ? GetTimeValueAdjustment(wtx.nFee, wtx.GetDepthInMainChain()) : 0);
+    int64 nFee = (wtx.IsFromMe() ? GetTimeAdjustedValue(wtx.GetValueOut(), nBestHeight-wtx.nRefHeight) - nDebit : 0);
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe())
@@ -1983,12 +1981,13 @@ Value getmemorypool(const Array& params, bool fHelp)
         result.push_back(Pair("version", pblock->nVersion));
         result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
         result.push_back(Pair("transactions", transactions));
-        result.push_back(Pair("coinbasevalue", (int64_t)GetPresentValue(pblock->vtx[0], pblock->vtx[0].vout[0], 0)));
+        result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].GetValueOut()));
         result.push_back(Pair("coinbaseflags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
         result.push_back(Pair("time", (int64_t)pblock->nTime));
         result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
         result.push_back(Pair("curtime", (int64_t)GetAdjustedTime()));
         result.push_back(Pair("bits", HexBits(pblock->nBits)));
+        result.push_back(Pair("height", pindexPrev->nHeight + 1));
 
         return result;
     }

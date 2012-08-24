@@ -56,6 +56,7 @@ TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     entry.push_back(Pair("txid", tx.GetHash().GetHex()));
     entry.push_back(Pair("version", tx.nVersion));
     entry.push_back(Pair("locktime", (boost::int64_t)tx.nLockTime));
+    entry.push_back(Pair("refHeight", (boost::int64_t)tx.nRefHeight));
     Array vin;
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
     {
@@ -80,7 +81,7 @@ TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     {
         const CTxOut& txout = tx.vout[i];
         Object out;
-        out.push_back(Pair("value", ValueFromAmount(GetPresentValue(tx, txout, 0))));
+        out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
         out.push_back(Pair("n", (boost::int64_t)i));
         Object o;
         ScriptPubKeyToJSON(txout.scriptPubKey, o);
@@ -170,7 +171,7 @@ Value listunspent(const Array& params, bool fHelp)
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
             continue;
 
-        int64 nValue = GetPresentValue(*out.tx, out.tx->vout[out.i], out.nDepth);
+        int64 nValue = GetPresentValue(*out.tx, out.tx->vout[out.i], nBestHeight);
         const CScript& pk = out.tx->vout[out.i].scriptPubKey;
         Object entry;
         entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));

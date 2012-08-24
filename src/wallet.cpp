@@ -447,7 +447,7 @@ bool CWallet::IsMine(const CTxIn &txin) const
     return false;
 }
 
-int64 CWallet::GetDebit(const CTxIn &txin, int nDepth) const
+int64 CWallet::GetDebit(const CTxIn &txin, int nBlockHeight) const
 {
     {
         LOCK(cs_wallet);
@@ -457,7 +457,7 @@ int64 CWallet::GetDebit(const CTxIn &txin, int nDepth) const
             const CWalletTx& prev = (*mi).second;
             if (txin.prevout.n < prev.vout.size())
                 if (IsMine(prev.vout[txin.prevout.n]))
-                    return GetPresentValue(prev, prev.vout[txin.prevout.n], nDepth + prev.GetDepthInMainChain());
+                    return GetPresentValue(prev, prev.vout[txin.prevout.n], nBlockHeight);
         }
     }
     return 0;
@@ -528,7 +528,7 @@ int CWalletTx::GetRequestCount() const
 }
 
 void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, list<pair<CTxDestination, int64> >& listReceived,
-                           list<pair<CTxDestination, int64> >& listSent, int64& nFeeOut, string& strSentAccount, int nDepth) const
+                           list<pair<CTxDestination, int64> >& listSent, int64& nFeeOut, string& strSentAccount, int nBlockHeight) const
 {
     nGeneratedImmature = nGeneratedMature = nFeeOut = 0;
     listReceived.clear();
@@ -538,17 +538,18 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
     if (IsCoinBase())
     {
         if (GetBlocksToMaturity() > 0)
-            nGeneratedImmature = pwallet->GetCredit(*this, nDepth);
+            nGeneratedImmature = pwallet->GetCredit(*this, nBlockHeight);
         else
-            nGeneratedMature = GetCredit(nDepth);
+            nGeneratedMature = GetCredit(nBlockHeight);
         return;
     }
 
     // Compute fee:
-    int64 nDebit = GetDebit(nDepth);
+    int64 nDebit = GetDebit(nBlockHeight);
     if (nDebit > 0) // debit>0 means we signed/sent this transaction
     {
-        nFeeOut = nFee;
+        int64 nValueOut = GetTimeAdjustedValue(GetValueOut(), nBlockHeight-nRefHeight);
+        nFeeOut = nDebit - nValueOut;
     }
 
     // Sent/received.
@@ -567,16 +568,16 @@ void CWalletTx::GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, l
             continue;
 
         if (nDebit > 0)
-            listSent.push_back(make_pair(address, GetPresentValue(*this, txout, nDepth)));
+            listSent.push_back(make_pair(address, GetPresentValue(*this, txout, nBlockHeight)));
 
         if (pwallet->IsMine(txout))
-            listReceived.push_back(make_pair(address, GetPresentValue(*this, txout, nDepth)));
+            listReceived.push_back(make_pair(address, GetPresentValue(*this, txout, nBlockHeight)));
     }
 
 }
 
 void CWalletTx::GetAccountAmounts(const string& strAccount, int64& nGenerated, int64& nReceived,
-                                  int64& nSent, int64& nFeeOut, int nDepth) const
+                                  int64& nSent, int64& nFeeOut, int nBlockHeight) const
 {
     nGenerated = nReceived = nSent = nFeeOut = 0;
 
@@ -585,7 +586,7 @@ void CWalletTx::GetAccountAmounts(const string& strAccount, int64& nGenerated, i
     string strSentAccount;
     list<pair<CTxDestination, int64> > listReceived;
     list<pair<CTxDestination, int64> > listSent;
-    GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent, allFee, strSentAccount, nDepth);
+    GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent, allFee, strSentAccount, nBlockHeight);
 
     if (strAccount == "")
         nGenerated = allGeneratedMature;
@@ -917,10 +918,9 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed) const
             if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
                 continue;
 
-            int nDepth = pcoin->GetDepthInMainChain();
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && GetPresentValue(*pcoin, pcoin->vout[i], nDepth) > 0)
-                    vCoins.push_back(COutput(pcoin, i, nDepth));
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && GetPresentValue(*pcoin, pcoin->vout[i], nBestHeight) > 0)
+                    vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
         }
     }
 }
@@ -1100,6 +1100,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 wtxNew.vin.clear();
                 wtxNew.vout.clear();
                 wtxNew.fFromMe = true;
+                wtxNew.nRefHeight = nBestHeight;
 
                 int64 nTotalValue = nValue + nFeeRet;
                 double dPriority = 0;
@@ -1115,7 +1116,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
 
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
-                    int64 nCredit = GetPresentValue(*pcoin.first, pcoin.first->vout[pcoin.second], pcoin.first->GetDepthInMainChain());
+                    int64 nCredit = GetPresentValue(*pcoin.first, pcoin.first->vout[pcoin.second], wtxNew.nRefHeight);
                     dPriority += (double)nCredit * pcoin.first->GetDepthInMainChain();
                 }
 
@@ -1129,8 +1130,6 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                     nChange -= nMoveToFee;
                     nFeeRet += nMoveToFee;
                 }
-
-                wtxNew.nFee = nFeeRet;
 
                 if (nChange > 0)
                 {

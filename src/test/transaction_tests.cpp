@@ -82,8 +82,8 @@ BOOST_AUTO_TEST_CASE(test_Get)
     t1.vout[0].scriptPubKey << OP_1;
 
     BOOST_CHECK(t1.AreInputsStandard(dummyInputs));
-    BOOST_CHECK_EQUAL(t1.GetValueIn(dummyInputs,0), (50+21+22)*CENT);
-    BOOST_CHECK_EQUAL(t1.GetValueIn(dummyInputs,20), t1.GetValueOut(20));  //this test fails, why??
+    BOOST_CHECK_EQUAL(t1.GetValueIn(dummyInputs), (50+21+22)*CENT);
+    BOOST_CHECK_EQUAL(t1.GetValueIn(dummyInputs), t1.GetValueOut());  //this test fails, why??
 
     // Adding extra junk to the scriptSig should make it non-standard:
     t1.vin[0].scriptSig << OP_11;
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(test_GetThrow)
     t1.vout[0].scriptPubKey << OP_1;
 
     BOOST_CHECK_THROW(t1.AreInputsStandard(missingInputs), runtime_error);
-    BOOST_CHECK_THROW(t1.GetValueIn(missingInputs,0), runtime_error);
+    BOOST_CHECK_THROW(t1.GetValueIn(missingInputs), runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

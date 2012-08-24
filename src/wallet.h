@@ -165,22 +165,22 @@ public:
     void GetAllReserveKeys(std::set<CKeyID>& setAddress);
 
     bool IsMine(const CTxIn& txin) const;
-    int64 GetDebit(const CTxIn& txin, int nDepth) const;
+    int64 GetDebit(const CTxIn& txin, int nBlockHeight) const;
     bool IsMine(const CTxOut& txout) const
     {
         return ::IsMine(*this, txout.scriptPubKey);
     }
-    int64 GetCredit(const CTransaction& tx, const CTxOut& txout, int nDepth) const
+    int64 GetCredit(const CTransaction& tx, const CTxOut& txout, int nBlockHeight) const
     {
-        int64 nCredit = GetPresentValue(tx, txout, nDepth);
+        int64 nCredit = GetPresentValue(tx, txout, nBlockHeight);
         if (!MoneyRange(nCredit))
             throw std::runtime_error("CWallet::GetCredit() : value out of range");
         return (IsMine(txout) ? nCredit : 0);
     }
     bool IsChange(const CTxOut& txout) const;
-    int64 GetChange(const CTransaction& tx, const CTxOut& txout, int nDepth) const
+    int64 GetChange(const CTransaction& tx, const CTxOut& txout, int nBlockHeight) const
     {
-        int64 nChange = GetPresentValue(tx, txout, nDepth);
+        int64 nChange = GetPresentValue(tx, txout, nBlockHeight);
         if (!MoneyRange(nChange))
             throw std::runtime_error("CWallet::GetChange() : value out of range");
         return (IsChange(txout) ? nChange : 0);
@@ -196,35 +196,35 @@ public:
     {
         return (GetDebit(tx,0) > 0);
     }
-    int64 GetDebit(const CTransaction& tx, int nDepth) const
+    int64 GetDebit(const CTransaction& tx, int nBlockHeight) const
     {
         int64 nDebit = 0;
         BOOST_FOREACH(const CTxIn& txin, tx.vin)
         {
-            nDebit += GetDebit(txin, nDepth);
+            nDebit += GetDebit(txin, nBlockHeight);
             if (!MoneyRange(nDebit))
                 throw std::runtime_error("CWallet::GetDebit() : value out of range");
         }
         return nDebit;
     }
-    int64 GetCredit(const CTransaction& tx, int nDepth) const
+    int64 GetCredit(const CTransaction& tx, int nBlockHeight) const
     {
         int64 nCredit = 0, nAmount;
         BOOST_FOREACH(const CTxOut& txout, tx.vout)
         {
-            nAmount = GetCredit(tx, txout, nDepth);
+            nAmount = GetCredit(tx, txout, nBlockHeight);
             nCredit += nAmount;
             if (!MoneyRange(nAmount) || !MoneyRange(nCredit))
                 throw std::runtime_error("CWallet::GetCredit() : value out of range");
         }
         return nCredit;
     }
-    int64 GetChange(const CTransaction& tx, int nDepth) const
+    int64 GetChange(const CTransaction& tx, int nBlockHeight) const
     {
         int64 nChange = 0, nAmount;
         BOOST_FOREACH(const CTxOut& txout, tx.vout)
         {
-            nAmount = GetChange(tx, txout, nDepth);
+            nAmount = GetChange(tx, txout, nBlockHeight);
             nChange += nAmount;
             if (!MoneyRange(nAmount) || !MoneyRange(nChange))
                 throw std::runtime_error("CWallet::GetChange() : value out of range");
@@ -455,20 +455,20 @@ public:
         return (!!vfSpent[nOut]);
     }
 
-    int64 GetDebit(int nDepth) const
+    int64 GetDebit(int nBlockHeight) const
     {
         if (vin.empty())
             return 0;
-        return pwallet->GetDebit(*this, nDepth);
+        return pwallet->GetDebit(*this, nBlockHeight);
     }
 
-    int64 GetCredit(int nDepth, bool fUseCache=true) const
+    int64 GetCredit(int nBlockHeight, bool fUseCache=true) const
     {
         // Must wait until coinbase is safely deep enough in the chain before valuing it
         if (IsCoinBase() && GetBlocksToMaturity() > 0)
             return 0;
 
-        return pwallet->GetCredit(*this, nDepth);
+        return pwallet->GetCredit(*this, nBlockHeight);
     }
 
     int64 GetAvailableCredit(bool fUseCache=true) const
@@ -493,17 +493,17 @@ public:
     }
 
 
-    int64 GetChange(int nDepth) const
+    int64 GetChange(int nBlockHeight) const
     {
-        return pwallet->GetChange(*this, nDepth);
+        return pwallet->GetChange(*this, nBlockHeight);
     }
 
     void GetAmounts(int64& nGeneratedImmature, int64& nGeneratedMature, std::list<std::pair<CTxDestination, int64> >& listReceived,
                     std::list<std::pair<CTxDestination, int64> >& listSent, int64& nFeeOut, std::string& strSentAccount,
-                    int nDepth) const;
+                    int nBlockHeight) const;
 
     void GetAccountAmounts(const std::string& strAccount, int64& nGenerated, int64& nReceived, 
-                           int64& nSent, int64& nFeeOut, int nDepth) const;
+                           int64& nSent, int64& nFeeOut, int nBlockHeight) const;
 
     bool IsFromMe() const
     {
