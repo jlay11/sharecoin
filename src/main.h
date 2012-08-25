@@ -524,12 +524,11 @@ public:
      */
     int64 GetValueOut() const
     {
-        int64 nValueOut = 0, nPresentValue;
+        int64 nValueOut = 0;
         BOOST_FOREACH(const CTxOut& txout, vout)
         {
-            nPresentValue = GetPresentValue(*this, txout, nRefHeight);
-            nValueOut += nPresentValue;
-            if (!MoneyRange(nPresentValue) || !MoneyRange(nValueOut))
+            nValueOut += txout.nValue;
+            if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
         }
         return nValueOut;
