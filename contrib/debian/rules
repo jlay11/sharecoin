@@ -12,7 +12,7 @@ DEB_INSTALL_MANPAGES_freicoind += debian/manpages/*
 	dh --with bash-completion $@
 
 override_dh_auto_build:
-	cd src; $(MAKE) -f makefile.unix freicoind
+	cd src; $(MAKE) -f makefile.unix STATIC=1 USE_IPV6=1 USE_QRCODE=1 USE_UPNP=0 freicoind
 	$(MAKE)
 
 override_dh_auto_clean:
@@ -20,7 +20,7 @@ override_dh_auto_clean:
 	cd src; $(MAKE) -f makefile.unix clean
 
 override_dh_auto_configure:
-	qmake freicoin-qt.pro USE_QRCODE=1
+	qmake freicoin-qt.pro RELEASE=1 USE_QRCODE=1 USE_DBUS=1
 
 override_dh_auto_test:
 	cd src; $(MAKE) -f makefile.unix test_freicoin
