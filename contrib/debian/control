@@ -17,6 +17,7 @@ Build-Depends: debhelper,
  libboost-test-dev (>> 1.35) | libboost-test1.35-dev,
  qt4-qmake,
  libqt4-dev,
+ libdbus-1-dev,
  libqrencode-dev,
  libmpfr-dev,
  libgmp3-dev
