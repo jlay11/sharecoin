@@ -5,9 +5,9 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.6.99
+!define VERSION 0.0.1beta1
 !define COMPANY "Freicoin project"
-!define URL http://www.freicoin.org/
+!define URL http://freico.in/
 
 # MUI Symbol Definitions
 !define MUI_ICON "../share/pixmaps/freicoin.ico"

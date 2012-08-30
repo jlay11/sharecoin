@@ -1,3 +1,12 @@
+freicoin (0.0.0+1beta1~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+  * Replaced bitcoin icons with new Freicoin icons provided by Aaron
+    Blumenshine <aaron@monetize.io>.
+  * Updated DNS and IP seed lists.
+
+ -- Mark Friedenbach <mark@monetize.io>  Wed, 30 Aug 2012 13:57:48 -0700
+
 freicoin (0.0.0+1alpha1~precise7) precise; urgency=low
 
   [ Mark Friedenbach ]

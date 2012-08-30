@@ -1,4 +1,4 @@
-Freicoin 0.6.99 BETA
+Freicoin 0.0.1beta1
 
 Copyright (c) 2009-2012 Bitcoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
