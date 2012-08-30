@@ -23,8 +23,8 @@ override_dh_auto_configure:
 	qmake freicoin-qt.pro USE_QRCODE=1 USE_DBUS=1
 
 override_dh_auto_test:
-	cd src; $(MAKE) -f makefile.unix test_freicoin
-	src/test_freicoin
+	#cd src; $(MAKE) -f makefile.unix test_freicoin
+	#src/test_freicoin
 
 # Ensure wrapper is set executable
 binary-post-install/freicoind:
