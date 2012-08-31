@@ -25,7 +25,7 @@ files:
 - "cloog-ppl-0.15.11.tar.gz"
 - "crosstool-ng-1.15.2.tar.bz2"
 - "gcc-4.5.2.tar.bz2"
-- "glibc-2.11.1.tar.bz2"
+- "glibc-2.11.tar.bz2"
 - "gmp-5.0.2.tar.bz2"
 - "libelf-0.8.13.tar.gz"
 - "libtool-2.2.6b.tar.lzma"
@@ -514,7 +514,7 @@ script: |
   # C-library
   #
   CT_LIBC="glibc"
-  CT_LIBC_VERSION="2.11.1"
+  CT_LIBC_VERSION="2.11"
   # CT_LIBC_eglibc is not set
   CT_LIBC_glibc=y
   # CT_LIBC_uClibc is not set
@@ -526,8 +526,8 @@ script: |
   # CT_LIBC_GLIBC_V_2_13 is not set
   # CT_LIBC_GLIBC_V_2_12_2 is not set
   # CT_LIBC_GLIBC_V_2_12_1 is not set
-  CT_LIBC_GLIBC_V_2_11_1=y
-  # CT_LIBC_GLIBC_V_2_11 is not set
+  # CT_LIBC_GLIBC_V_2_11_1 is not set
+  CT_LIBC_GLIBC_V_2_11=y
   # CT_LIBC_GLIBC_V_2_10_1 is not set
   # CT_LIBC_GLIBC_V_2_9 is not set
   # CT_LIBC_GLIBC_V_2_8 is not set

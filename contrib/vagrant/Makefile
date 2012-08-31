@@ -141,8 +141,8 @@ $(PKG)_CHECKSUM := 6c46f4376d11ada5be0cfc3894b9296edf574af3c616ab71803ea78edfd70
 $(PKG)_URL      := http://opensource.apple.com/tarballs/gcc/$(PKG)
 PKGS            += $(PKG)
 
-PKG             := glibc-2.11.1.tar.bz2
-$(PKG)_CHECKSUM := 64e01d0cfc964a8d8a8c74b5d36bd655e800c12d22b756dd84d867148a595fa1
+PKG             := glibc-2.11.tar.bz2
+$(PKG)_CHECKSUM := 9ef10e498fac4acc458029898fd8fa76c3cedee1f63d23fedf0c579c505ed62c
 $(PKG)_URL      := http://ftp.gnu.org/gnu/libc/$(PKG)
 PKGS            += $(PKG)
 
@@ -2012,7 +2012,7 @@ $(TARGET)_PKGS     := autoconf-2.65.tar.xz \
                       cloog-ppl-0.15.11.tar.gz \
                       crosstool-ng-1.15.2.tar.bz2 \
                       gcc-4.5.2.tar.bz2 \
-                      glibc-2.11.1.tar.bz2 \
+                      glibc-2.11.tar.bz2 \
                       gmp-5.0.2.tar.bz2 \
                       libelf-0.8.13.tar.gz \
                       libtool-2.2.6b.tar.lzma \
@@ -2043,7 +2043,7 @@ $(TARGET)_PKGS     := autoconf-2.65.tar.xz \
                       cloog-ppl-0.15.11.tar.gz \
                       crosstool-ng-1.15.2.tar.bz2 \
                       gcc-4.5.2.tar.bz2 \
-                      glibc-2.11.1.tar.bz2 \
+                      glibc-2.11.tar.bz2 \
                       gmp-5.0.2.tar.bz2 \
                       libelf-0.8.13.tar.gz \
                       libtool-2.2.6b.tar.lzma \
