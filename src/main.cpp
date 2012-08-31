@@ -1143,14 +1143,14 @@ int64 GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth)
     else {
         mpfr_t rate, mp, init;
         mpfr_inits2(113, rate, mp, init, (mpfr_ptr) 0);
-        mpfr_set_ui(mp,       1048575,                   MPFR_RNDN);
-        mpfr_div_ui(rate, mp, 1048576,                   MPFR_RNDN);
-        mpfr_pow_si(mp, rate,            nRelativeDepth, MPFR_RNDN);
-        mpfr_set_sj(init,     (intmax_t) nInitialValue,  MPFR_RNDN);
-        mpfr_mul   (mp,   mp, init,                      MPFR_RNDN);
-        if ( ! mpfr_fits_intmax_p(mp, MPFR_RNDZ) )
+        mpfr_set_ui(mp,       1048575,                   GMP_RNDN);
+        mpfr_div_ui(rate, mp, 1048576,                   GMP_RNDN);
+        mpfr_pow_si(mp, rate,            nRelativeDepth, GMP_RNDN);
+        mpfr_set_sj(init,     (intmax_t) nInitialValue,  GMP_RNDN);
+        mpfr_mul   (mp,   mp, init,                      GMP_RNDN);
+        if ( ! mpfr_fits_intmax_p(mp, GMP_RNDZ) )
             throw std::runtime_error("GetTimeAdjustedValue() : adjusted value does not fit in intmax_t");
-        nResult = mpfr_get_sj(mp,                        MPFR_RNDZ);
+        nResult = mpfr_get_sj(mp,                        GMP_RNDZ);
         mpfr_clears(rate, mp, init, (mpfr_ptr) 0);
     }
     return nResult;

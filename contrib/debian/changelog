@@ -1,3 +1,11 @@
+freicoin (0.0.0+1beta1~precise2) precise; urgency=low
+
+  [ Mark Friedenbach ]
+  * Switched MPFR_ rounding constants to GMP_, for compatibility with MPFR
+    2.x, for Ubuntu 10.04 LTS compatibility.
+
+ -- Mark Friedenbach <mark@monetize.io>  Wed, 30 Aug 2012 13:57:48 -0700
+
 freicoin (0.0.0+1beta1~precise1) precise; urgency=low
 
   [ Mark Friedenbach ]
