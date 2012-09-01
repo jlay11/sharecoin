@@ -1,3 +1,11 @@
+freicoin (0.0.0+1beta1~precise3) precise; urgency=low
+
+  [ Mark Friedenbach ]
+  * Removed dependency on Qt 4.7 API, so that Freicoin-Qt can be built by the
+    Launchpad PPA for Ubuntu 10.04 LTS (lucid).
+
+ -- Mark Friedenbach <mark@monetize.io>  Sat, 1 Sep 2012 02:09:50 -0700
+
 freicoin (0.0.0+1beta1~precise2) precise; urgency=low
 
   [ Mark Friedenbach ]
