@@ -798,8 +798,7 @@ int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nMinD
             continue;
 
         int64 nGenerated, nReceived, nSent, nFee;
-        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee,
-                              wtx.GetDepthInMainChain());
+        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee, nBestHeight);
 
         if (nReceived != 0 && wtx.GetDepthInMainChain() >= nMinDepth)
             nBalance += nReceived;
@@ -851,7 +850,7 @@ Value getbalance(const Array& params, bool fHelp)
             list<pair<CTxDestination, int64> > listReceived;
             list<pair<CTxDestination, int64> > listSent;
             wtx.GetAmounts(allGeneratedImmature, allGeneratedMature, listReceived, listSent,
-                           allFee, strSentAccount, wtx.GetDepthInMainChain());
+                           allFee, strSentAccount, nBestHeight);
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
                 BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64)& r, listReceived)
@@ -1235,7 +1234,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     list<pair<CTxDestination, int64> > listSent;
 
     wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent,
-                   nFee, strSentAccount, wtx.GetDepthInMainChain());
+                   nFee, strSentAccount, nBestHeight);
 
     bool fAllAccounts = (strAccount == string("*"));
 
@@ -1416,7 +1415,7 @@ Value listaccounts(const Array& params, bool fHelp)
         list<pair<CTxDestination, int64> > listReceived;
         list<pair<CTxDestination, int64> > listSent;
         wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent,
-                       nFee, strSentAccount, wtx.GetDepthInMainChain());
+                       nFee, strSentAccount, nBestHeight);
         mapAccountBalances[strSentAccount] -= nFee;
         BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64)& s, listSent)
             mapAccountBalances[strSentAccount] -= s.second;
