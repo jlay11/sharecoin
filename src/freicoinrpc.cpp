@@ -1929,6 +1929,7 @@ Value getmemorypool(const Array& params, bool fHelp)
             "  \"mintime\" : minimum timestamp appropriate for next block\n"
             "  \"curtime\" : current timestamp\n"
             "  \"bits\" : compressed target of next block\n"
+            "  \"height\" : height of the next block, and reference block height for the coinbase transaction\n"
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
     if (params.size() == 0)
@@ -1976,6 +1977,10 @@ Value getmemorypool(const Array& params, bool fHelp)
             transactions.push_back(HexStr(ssTx.begin(), ssTx.end()));
         }
 
+        int nHeight = pindexPrev->nHeight + 1;
+        if ( nHeight != pblock->vtx[0].nRefHeight )
+            throw JSONRPCError(-11, "Coinbase height and block height do not match");
+
         Object result;
         result.push_back(Pair("version", pblock->nVersion));
         result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
@@ -1986,7 +1991,7 @@ Value getmemorypool(const Array& params, bool fHelp)
         result.push_back(Pair("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1));
         result.push_back(Pair("curtime", (int64_t)GetAdjustedTime()));
         result.push_back(Pair("bits", HexBits(pblock->nBits)));
-        result.push_back(Pair("height", pindexPrev->nHeight + 1));
+        result.push_back(Pair("height", nHeight));
 
         return result;
     }
