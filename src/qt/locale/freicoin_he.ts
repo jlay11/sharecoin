@@ -2042,8 +2042,8 @@ Address: %4
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="63"/>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>האזן לחיבורים ב&lt;פורט&gt; (ברירת מחדל: 8333 או ברשת הבדיקה: 18333)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
+        <translation>האזן לחיבורים ב&lt;פורט&gt; (ברירת מחדל: 8639 או ברשת הבדיקה: 18639)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="64"/>

@@ -26,7 +26,7 @@ select Excluded processes, press Add, select freicoin.exe, OK, Save changes.
 
 The software automatically finds other nodes to connect to.  You can
 enable Universal Plug and Play using a menu entry or set your firewall
-to forward port 8333 (TCP) to your computer so you can receive
+to forward port 8639 (TCP) to your computer so you can receive
 incoming connections.  Freicoin works without incoming connections,
 but allowing incoming connections helps the Freicoin network.
 

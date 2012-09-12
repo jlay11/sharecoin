@@ -2044,8 +2044,8 @@ Address: %4
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="63"/>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 8333 или 18333 в тестовой сети)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
+        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 8639 или 18639 в тестовой сети)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="64"/>

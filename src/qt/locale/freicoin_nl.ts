@@ -2055,8 +2055,8 @@ Adres: %4
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="63"/>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>Luister voor verbindingen op &lt;poort&gt; (standaard: 8333 of testnet: 18333)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
+        <translation>Luister voor verbindingen op &lt;poort&gt; (standaard: 8639 of testnet: 18639)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="64"/>

@@ -2053,8 +2053,8 @@ Dirección: %4</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="63"/>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>Escuchar por conecciones en &lt;puerto&gt; (Por defecto: 8333 o red de prueba: 18333)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
+        <translation>Escuchar por conecciones en &lt;puerto&gt; (Por defecto: 8639 o red de prueba: 18639)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="64"/>

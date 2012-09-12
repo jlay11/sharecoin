@@ -2036,8 +2036,8 @@ Adresa: %4</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="63"/>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
-        <translation>Načúvať spojeniam na &lt;port&gt; (prednastavené: 8333 alebo testovacia sieť: 18333)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
+        <translation>Načúvať spojeniam na &lt;port&gt; (prednastavené: 8639 alebo testovacia sieť: 18639)</translation>
     </message>
     <message>
         <location filename="../bitcoinstrings.cpp" line="64"/>

@@ -1705,7 +1705,7 @@ Address: %4
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Listen for connections on &lt;port&gt; (default: 8333 or testnet: 18333)</source>
+        <source>Listen for connections on &lt;port&gt; (default: 8639 or testnet: 18639)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

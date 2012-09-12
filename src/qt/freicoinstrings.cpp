@@ -96,7 +96,7 @@ QT_TRANSLATE_NOOP("freicoin-core", "Invalid amount for -paytxfee=<amount>: '%s'"
 QT_TRANSLATE_NOOP("freicoin-core", "Invalid amount"),
 QT_TRANSLATE_NOOP("freicoin-core", "List commands"),
 QT_TRANSLATE_NOOP("freicoin-core", "Listen for JSON-RPC connections on <port> (default: 8332)"),
-QT_TRANSLATE_NOOP("freicoin-core", "Listen for connections on <port> (default: 8333 or testnet: 18333)"),
+QT_TRANSLATE_NOOP("freicoin-core", "Listen for connections on <port> (default: 8639 or testnet: 18639)"),
 QT_TRANSLATE_NOOP("freicoin-core", "Loading addresses..."),
 QT_TRANSLATE_NOOP("freicoin-core", "Loading block index..."),
 QT_TRANSLATE_NOOP("freicoin-core", "Loading wallet..."),
