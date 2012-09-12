@@ -214,6 +214,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         if (!wtx.mapValue["comment"].empty())
             strHTML += "<br><b>" + tr("Comment") + ":</b><br>" + GUIUtil::HtmlEscape(wtx.mapValue["comment"], true) + "<br>";
 
+        strHTML += "<b>" + tr("Reference Height") + ":</b> " + QString("%1").arg(wtx.nRefHeight) + "<br>";
+
         strHTML += "<b>" + tr("Transaction ID") + ":</b> " + wtx.GetHash().ToString().c_str() + "<br>";
 
         if (wtx.IsCoinBase())
