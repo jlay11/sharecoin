@@ -1234,7 +1234,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     list<pair<CTxDestination, int64> > listSent;
 
     wtx.GetAmounts(nGeneratedImmature, nGeneratedMature, listReceived, listSent,
-                   nFee, strSentAccount, nBestHeight);
+                   nFee, strSentAccount, wtx.nRefHeight);
 
     bool fAllAccounts = (strAccount == string("*"));
 
@@ -1523,10 +1523,10 @@ Value gettransaction(const Array& params, bool fHelp)
         throw JSONRPCError(-5, "Invalid or non-wallet transaction id");
     const CWalletTx& wtx = pwalletMain->mapWallet[hash];
 
-    int64 nCredit = wtx.GetCredit(nBestHeight);
-    int64 nDebit = wtx.GetDebit(nBestHeight);
+    int64 nCredit = wtx.GetCredit(wtx.nRefHeight);
+    int64 nDebit = wtx.GetDebit(wtx.nRefHeight);
     int64 nNet = nCredit - nDebit;
-    int64 nFee = (wtx.IsFromMe() ? GetTimeAdjustedValue(wtx.GetValueOut(), nBestHeight-wtx.nRefHeight) - nDebit : 0);
+    int64 nFee = (wtx.IsFromMe() ? wtx.GetValueOut() - nDebit : 0);
 
     entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe())
