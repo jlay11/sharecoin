@@ -1255,6 +1255,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
         }
         if (fLong)
             WalletTxToJSON(wtx, entry);
+        entry.push_back(Pair("refheight", wtx.nRefHeight));
         ret.push_back(entry);
     }
 
@@ -1271,6 +1272,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
             entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
             if (fLong)
                 WalletTxToJSON(wtx, entry);
+            entry.push_back(Pair("refheight", wtx.nRefHeight));
             ret.push_back(entry);
         }
     }
@@ -1292,6 +1294,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 entry.push_back(Pair("amount", ValueFromAmount(r.second)));
                 if (fLong)
                     WalletTxToJSON(wtx, entry);
+                entry.push_back(Pair("refheight", wtx.nRefHeight));
                 ret.push_back(entry);
             }
         }
@@ -1530,6 +1533,8 @@ Value gettransaction(const Array& params, bool fHelp)
         entry.push_back(Pair("fee", ValueFromAmount(nFee)));
 
     WalletTxToJSON(wtx, entry);
+
+    entry.push_back(Pair("refheight", wtx.nRefHeight));
 
     Array details;
     ListTransactions(wtx, "*", 0, false, details);
