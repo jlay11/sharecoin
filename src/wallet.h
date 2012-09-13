@@ -483,7 +483,7 @@ public:
             if (!IsSpent(i))
             {
                 const CTxOut &txout = vout[i];
-                nCredit += pwallet->GetCredit(*this, txout, GetDepthInMainChain());
+                nCredit += pwallet->GetCredit(*this, txout, nBestHeight);
                 if (!MoneyRange(nCredit))
                     throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
             }
