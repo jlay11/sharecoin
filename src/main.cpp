@@ -2050,6 +2050,7 @@ bool LoadBlockIndex(bool fAllowNew)
         // Genesis block
         const char* pszTimestamp = "Telegraph 27/Jun/2012 Barclays hit with \xc2\xa3""290m fine over Libor fixing";
         CTransaction txNew;
+        txNew.nVersion = 2;
         txNew.nRefHeight = 0;
         txNew.vin .resize(1);
         txNew.vout.resize(1);
