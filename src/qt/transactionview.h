@@ -48,6 +48,7 @@ private:
     QComboBox *typeWidget;
     QLineEdit *addressWidget;
     QLineEdit *amountWidget;
+    QLineEdit *refheightWidget;
 
     QMenu *contextMenu;
 
@@ -74,6 +75,7 @@ public slots:
     void chooseType(int idx);
     void changedPrefix(const QString &prefix);
     void changedAmount(const QString &amount);
+    void changedRefHeight(const QString &refheight);
     void exportClicked();
     void focusTransaction(const QModelIndex&);
 

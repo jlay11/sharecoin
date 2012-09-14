@@ -72,6 +72,8 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     sub.address = mapValue["from"];
                 }
 
+                sub.refheight = wtx.nRefHeight;
+
                 parts.append(sub);
             }
         }
@@ -92,7 +94,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             int64 nChange = wtx.GetChange(wtx.nRefHeight);
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                            -(nDebit - nChange), nCredit - nChange));
+                            -(nDebit - nChange), nCredit - nChange, wtx.nRefHeight));
         }
         else if (fAllFromMe)
         {
@@ -137,6 +139,8 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 }
                 sub.debit = -nValue;
 
+                sub.refheight = wtx.nRefHeight;
+
                 parts.append(sub);
             }
         }
@@ -145,7 +149,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             // Mixed debit transaction, can't break down payees
             //
-            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0));
+            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0, wtx.nRefHeight));
         }
     }
 
