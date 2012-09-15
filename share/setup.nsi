@@ -5,7 +5,7 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.0.1beta1
+!define VERSION 0.0.1beta2
 !define COMPANY "Freicoin project"
 !define URL http://freico.in/
 

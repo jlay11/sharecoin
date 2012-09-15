@@ -1,3 +1,60 @@
+freicoin (0.0.0+1beta2~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Rebuilt genesis block using new transaction format (32-bit RefHeight
+      instead of 64-bit), new initial block value, and new timestamp+nonce.
+    * Switch to GCC 4.4.3 for Linux builds.
+    * Now builds Ubuntu 10.04 LTS (lucid) packages on Ubuntu PPA.
+    * Switched MPFR_ rounding constants to GMP_, for compatibility with MPFR
+      2.x, for Ubuntu 10.04 LTS compatibility.
+    * Switch glibc version from 2.11.1 to 2.11, for maximum compatibility.
+    * Fixed choice of API for accessing Qt image data, which was an issue
+      causing the Launchpad PPA to choke while building for Ubuntu 10.04 LTS
+      (lucid) which includes Qt 4.6.2.
+    * Fixed inaccurate representation of balances in command-line API. The
+      GetAmounts() and GetAccountAmounts() wallet APIs changed in the most
+      recent demurrage payback implementation, but calls to these functions
+      were not updated to reflect the changes.
+    * Added documentation and checks to the inclusion of "height" to
+      getmemorypool.
+    * Corrected monetary base magic number from 21MM to 10bn, not 21MM.
+    * Change testnet protocol-header to be derived from mainnet in the same
+      way as for bitcoin/bitcoin_testnet.
+    * Change transaction debits/credits and other related values to be
+      displayed relative to the reference height of the transaction in the Qt
+      client.
+    * Print the reference height as part of the detailed description of the
+      transaction.
+    * Added refheight field to the return value of ListTransactions() and the
+      gettransaction RPC.
+    * Peg amounts returned by ListTransactions() and get transaction RPC to
+      the reference height of the transaction.
+    * GetCredit() is supposed to take absolute height, not relative depth as
+      third parameter.
+    * Added a python script to calculate demurrage parameters for the
+      arithmetic progression algorithm.
+    * Added nRefHeight to class CAccountingEntry, and add nBlockHeight
+      parameter to GetAccountCreditDebit(). (Backwards-incompatible with
+      existing wallets.)
+    * Added "refheight" field to output of AcentryToJSON().
+    * Change nRefHeight in version=2 transactions to be 32-bit instead of 64-
+      bit. Requires new genesis block.
+    * Switched coinbase distribution to arithmetic progression. This will be a
+      test for the second beta, with the option kept to revert before final
+      release. A new genesis block still needs to be created.
+    * Explicitly set genesis block's nVersion field to 2, for clarity.
+    * Increased size of “About Freicoin-Qt” dialog box, to account for extra
+      copyright line.
+    * Added “Ref-height” column to “Transactions” tab, showing the reference
+      height for the transaction, with a field for restricting transactions
+      based on a specified minimum height value.
+    * Added script to find genesis block.
+
+  [ Roman Mindalev ]
+    * Update port number (8333 -> 8639) in documentation and tests.
+
+ -- Mark Friedenbach <mark@monetize.io>  Sat, 14 Sep 2012 04:37:28 -0700
+
 freicoin (0.0.0+1beta1~precise3) precise; urgency=low
 
   [ Mark Friedenbach ]
