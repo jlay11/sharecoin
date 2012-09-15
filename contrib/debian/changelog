@@ -1,4 +1,4 @@
-freicoin (0.0.0+1beta2~precise1) precise; urgency=low
+freicoin (0.0.0+1beta2~precise2) precise; urgency=low
 
   [ Mark Friedenbach ]
     * Rebuilt genesis block using new transaction format (32-bit RefHeight
