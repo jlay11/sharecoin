@@ -4,6 +4,8 @@
 #include <QSortFilterProxyModel>
 #include <QDateTime>
 
+#include <stdint.h>
+
 /** Filter the transaction list according to pre-specified rules. */
 class TransactionFilterProxy : public QSortFilterProxyModel
 {
