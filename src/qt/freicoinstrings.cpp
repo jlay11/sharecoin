@@ -144,4 +144,5 @@ QT_TRANSLATE_NOOP("freicoin-core", "Use the test network"),
 QT_TRANSLATE_NOOP("freicoin-core", "Username for JSON-RPC connections"),
 QT_TRANSLATE_NOOP("freicoin-core", "Wallet needed to be rewritten: restart Freicoin to complete"),
 QT_TRANSLATE_NOOP("freicoin-core", "Warning: Disk space is low"),
+QT_TRANSLATE_NOOP("freicoin-core", "Warning: this version is obsolete, upgrade required"),
 };
