@@ -709,7 +709,7 @@ bool CMerkleTx::AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs)
 {
     if (fClient)
     {
-        if (!IsInMainChain() && !ClientConnectInputs( txdb, GetDepthInMainChain() ) )
+        if (!IsInMainChain() && !ClientConnectInputs( txdb ) )
             return false;
         return CTransaction::AcceptToMemoryPool(txdb, false);
     }
@@ -1280,7 +1280,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
 }
 
 
-bool CTransaction::ClientConnectInputs(CTxDB& txdb, int nBlockHeight)
+bool CTransaction::ClientConnectInputs(CTxDB& txdb)
 {
     if (IsCoinBase())
         return false;
