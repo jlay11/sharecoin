@@ -145,9 +145,9 @@ public:
     int ScanForWalletTransaction(const uint256& hashTx);
     void ReacceptWalletTransactions();
     void ResendWalletTransactions();
-    int64 GetBalance() const;
-    int64 GetUnconfirmedBalance() const;
-    int64 GetImmatureBalance() const;
+    int64 GetBalance(int nBlockHeight) const;
+    int64 GetUnconfirmedBalance(int nBlockHeight) const;
+    int64 GetImmatureBalance(int nBlockHeight) const;
     bool CreateTransaction(const std::vector<std::pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet);
     bool CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey);
@@ -467,14 +467,20 @@ public:
         // Must wait until coinbase is safely deep enough in the chain before valuing it
         if (IsCoinBase() && GetBlocksToMaturity() > 0)
             return 0;
+        // Don't report coins that can't be spent
+        if (nRefHeight > nBlockHeight)
+            return 0;
 
         return pwallet->GetCredit(*this, nBlockHeight);
     }
 
-    int64 GetAvailableCredit(bool fUseCache=true) const
+    int64 GetAvailableCredit(int nBlockHeight, bool fUseCache=true) const
     {
         // Must wait until coinbase is safely deep enough in the chain before valuing it
         if (IsCoinBase() && GetBlocksToMaturity() > 0)
+            return 0;
+        // Don't report coins that can't be spent
+        if (nRefHeight > nBlockHeight)
             return 0;
 
         int64 nCredit = 0;
@@ -483,7 +489,7 @@ public:
             if (!IsSpent(i))
             {
                 const CTxOut &txout = vout[i];
-                nCredit += pwallet->GetCredit(*this, txout, nBestHeight);
+                nCredit += pwallet->GetCredit(*this, txout, nBlockHeight);
                 if (!MoneyRange(nCredit))
                     throw std::runtime_error("CWalletTx::GetAvailableCredit() : value out of range");
             }

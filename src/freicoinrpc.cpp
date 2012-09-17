@@ -382,7 +382,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("version",       (int)CLIENT_VERSION));
     obj.push_back(Pair("protocolversion",(int)PROTOCOL_VERSION));
     obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
-    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
+    obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance(nBestHeight))));
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("proxy",         (addrProxy.IsValid() ? addrProxy.ToStringIPPort() : string())));
@@ -786,9 +786,12 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
 }
 
 
-int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nMinDepth)
+int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nBlockHeight, int nMinDepth)
 {
     int64 nBalance = 0;
+
+    if ( nBlockHeight < 0 )
+        nBlockHeight = nBestHeight;
 
     // Tally wallet transactions
     for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
@@ -798,7 +801,7 @@ int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nMinD
             continue;
 
         int64 nGenerated, nReceived, nSent, nFee;
-        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee, nBestHeight);
+        wtx.GetAccountAmounts(strAccount, nGenerated, nReceived, nSent, nFee, nBlockHeight);
 
         if (nReceived != 0 && wtx.GetDepthInMainChain() >= nMinDepth)
             nBalance += nReceived;
@@ -806,15 +809,15 @@ int64 GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nMinD
     }
 
     // Tally internal accounting entries
-    nBalance += walletdb.GetAccountCreditDebit(strAccount, nBestHeight);
+    nBalance += walletdb.GetAccountCreditDebit(strAccount, nBlockHeight);
 
     return nBalance;
 }
 
-int64 GetAccountBalance(const string& strAccount, int nMinDepth)
+int64 GetAccountBalance(const string& strAccount, int nBlockHeight, int nMinDepth)
 {
     CWalletDB walletdb(pwalletMain->strWalletFile);
-    return GetAccountBalance(walletdb, strAccount, nMinDepth);
+    return GetAccountBalance(walletdb, strAccount, nBlockHeight, nMinDepth);
 }
 
 
@@ -827,7 +830,7 @@ Value getbalance(const Array& params, bool fHelp)
             "If [account] is specified, returns the balance in the account.");
 
     if (params.size() == 0)
-        return  ValueFromAmount(pwalletMain->GetBalance());
+        return  ValueFromAmount(pwalletMain->GetBalance(nBestHeight));
 
     int nMinDepth = 1;
     if (params.size() > 1)
@@ -866,7 +869,7 @@ Value getbalance(const Array& params, bool fHelp)
 
     string strAccount = AccountFromValue(params[0]);
 
-    int64 nBalance = GetAccountBalance(strAccount, nMinDepth);
+    int64 nBalance = GetAccountBalance(strAccount, nBestHeight, nMinDepth);
 
     return ValueFromAmount(nBalance);
 }
@@ -948,13 +951,15 @@ Value sendfrom(const Array& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
+    int nRefHeight = nBestHeight;
+
     // Check funds
-    int64 nBalance = GetAccountBalance(strAccount, nMinDepth);
+    int64 nBalance = GetAccountBalance(strAccount, nRefHeight, nMinDepth);
     if (nAmount > nBalance)
         throw JSONRPCError(-6, "Account has insufficient funds");
 
     // Send
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, nRefHeight, wtx);
     if (strError != "")
         throw JSONRPCError(-4, strError);
 

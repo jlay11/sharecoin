@@ -54,9 +54,9 @@ public:
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
 
-    qint64 getBalance() const;
-    qint64 getUnconfirmedBalance() const;
-    qint64 getImmatureBalance() const;
+    qint64 getBalance(int nBlockHeight) const;
+    qint64 getUnconfirmedBalance(int nBlockHeight) const;
+    qint64 getImmatureBalance(int nBlockHeight) const;
     int getNumTransactions() const;
     EncryptionStatus getEncryptionStatus() const;
 

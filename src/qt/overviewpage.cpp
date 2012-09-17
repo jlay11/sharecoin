@@ -9,6 +9,8 @@
 #include "guiutil.h"
 #include "guiconstants.h"
 
+#include "main.h"
+
 #include <QAbstractItemDelegate>
 #include <QPainter>
 
@@ -165,8 +167,10 @@ void OverviewPage::setModel(WalletModel *model)
         ui->listTransactions->setModel(filter);
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
+        int nBlockHeight = nBestHeight;
+
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance());
+        setBalance(model->getBalance(nBlockHeight), model->getUnconfirmedBalance(nBlockHeight), model->getImmatureBalance(nBlockHeight));
         connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64)));
 
         setNumTransactions(model->getNumTransactions());

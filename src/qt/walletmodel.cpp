@@ -36,19 +36,19 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance() const
+qint64 WalletModel::getBalance(int nBlockHeight) const
 {
-    return wallet->GetBalance();
+    return wallet->GetBalance(nBlockHeight);
 }
 
-qint64 WalletModel::getUnconfirmedBalance() const
+qint64 WalletModel::getUnconfirmedBalance(int nBlockHeight) const
 {
-    return wallet->GetUnconfirmedBalance();
+    return wallet->GetUnconfirmedBalance(nBlockHeight);
 }
 
-qint64 WalletModel::getImmatureBalance() const
+qint64 WalletModel::getImmatureBalance(int nBlockHeight) const
 {
-    return wallet->GetImmatureBalance();
+    return wallet->GetImmatureBalance(nBlockHeight);
 }
 
 int WalletModel::getNumTransactions() const
@@ -81,9 +81,9 @@ void WalletModel::pollBalanceChanged()
 
 void WalletModel::checkBalanceChanged()
 {
-    qint64 newBalance = getBalance();
-    qint64 newUnconfirmedBalance = getUnconfirmedBalance();
-    qint64 newImmatureBalance = getImmatureBalance();
+    qint64 newBalance = getBalance(nBestHeight);
+    qint64 newUnconfirmedBalance = getUnconfirmedBalance(nBestHeight);
+    qint64 newImmatureBalance = getImmatureBalance(nBestHeight);
 
     if(cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance)
     {

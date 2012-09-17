@@ -852,7 +852,7 @@ void CWallet::ResendWalletTransactions()
 //
 
 
-int64 CWallet::GetBalance() const
+int64 CWallet::GetBalance(int nBlockHeight) const
 {
     int64 nTotal = 0;
     {
@@ -861,14 +861,14 @@ int64 CWallet::GetBalance() const
         {
             const CWalletTx* pcoin = &(*it).second;
             if (pcoin->IsFinal() && pcoin->IsConfirmed())
-                nTotal += pcoin->GetAvailableCredit();
+                nTotal += pcoin->GetAvailableCredit(nBlockHeight);
         }
     }
 
     return nTotal;
 }
 
-int64 CWallet::GetUnconfirmedBalance() const
+int64 CWallet::GetUnconfirmedBalance(int nBlockHeight) const
 {
     int64 nTotal = 0;
     {
@@ -877,13 +877,13 @@ int64 CWallet::GetUnconfirmedBalance() const
         {
             const CWalletTx* pcoin = &(*it).second;
             if (!pcoin->IsFinal() || !pcoin->IsConfirmed())
-                nTotal += pcoin->GetAvailableCredit();
+                nTotal += pcoin->GetAvailableCredit(nBlockHeight);
         }
     }
     return nTotal;
 }
 
-int64 CWallet::GetImmatureBalance() const
+int64 CWallet::GetImmatureBalance(int nBlockHeight) const
 {
     int64 nTotal = 0;
     {
@@ -892,7 +892,7 @@ int64 CWallet::GetImmatureBalance() const
         {
             const CWalletTx& pcoin = (*it).second;
             if (pcoin.IsCoinBase() && pcoin.GetBlocksToMaturity() > 0 && pcoin.GetDepthInMainChain() >= 2)
-                nTotal += GetCredit(pcoin,pcoin.GetDepthInMainChain());
+                nTotal += GetCredit(pcoin,nBlockHeight);
         }
     }
     return nTotal;
