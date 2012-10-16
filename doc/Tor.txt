@@ -28,15 +28,11 @@ outgoing connections be anonimized, but more is possible.
                 need to set this if it's the same as -proxy. You can use -notor
                 to explicitly disable access to hidden service.
 
--dnsseed        DNS seeds are not resolved directly when a SOCKS5 proxy server is
-                set. Rather, a short-lived proxy connection to the dns seed
-                hostname is attempted, and peer addresses are requested.
-
 -listen         When using -proxy, listening is disabled by default. If you want
                 to run a hidden service (see next section), you'll need to enable
                 it explicitly.
 
--connect=X      When behing a Tor proxy, you can specify .onion addresses instead
+-connect=X      When behind a Tor proxy, you can specify .onion addresses instead
 -addnode=X      of IP addresses or hostnames in these parameters. It requires
 -seednode=X     SOCKS5. In Tor mode, such addresses can also be exchanged with
                 other P2P nodes.
@@ -59,7 +55,7 @@ config file):
 The directory can be different of course, but (both) 8639's should be equal to your
 freicoind's P2P listen port (8639 by default).
 
--externalip=X   You can tell freicoin about its publically reachable address using
+-externalip=X   You can tell freicoin about its publicly reachable address using
                 this option, and this can be a .onion address. Given the above
                 configuration, you can find your onion address in
                 /var/lib/tor/freicoin-service/hostname. Onion addresses are given

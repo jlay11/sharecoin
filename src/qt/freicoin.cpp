@@ -20,9 +20,6 @@
 #include <QSplashScreen>
 #include <QLibraryInfo>
 
-#include <boost/interprocess/ipc/message_queue.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-
 #if defined(FREICOIN_NEED_QT_PLUGINS) && !defined(_FREICOIN_QT_PLUGINS_INCLUDED)
 #define _FREICOIN_QT_PLUGINS_INCLUDED
 #define __INSURE__
@@ -116,27 +113,8 @@ static void handleRunawayException(std::exception *e)
 #ifndef FREICOIN_QT_TEST
 int main(int argc, char *argv[])
 {
-// TODO: implement URI support on the Mac.
-#if !defined(MAC_OSX)
     // Do this early as we don't want to bother initializing if we are just calling IPC
-    for (int i = 1; i < argc; i++)
-    {
-        if (boost::algorithm::istarts_with(argv[i], "freicoin:"))
-        {
-            const char *strURI = argv[i];
-            try {
-                boost::interprocess::message_queue mq(boost::interprocess::open_only, FREICOINURI_QUEUE_NAME);
-                if(mq.try_send(strURI, strlen(strURI), 0))
-                    exit(0);
-                else
-                    break;
-            }
-            catch (boost::interprocess::interprocess_exception &ex) {
-                break;
-            }
-        }
-    }
-#endif
+    ipcScanRelay(argc, argv);
 
     // Internal string conversion is all UTF-8
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
@@ -154,7 +132,10 @@ int main(int argc, char *argv[])
     // ... then freicoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(false)))
     {
-        fprintf(stderr, "Error: Specified directory does not exist\n");
+        // This message can not be translated, as translation is not initialized yet
+        // (which not yet possible because lang=XX can be overridden in freicoin.conf in the data directory)
+        QMessageBox::critical(0, "Freicoin",
+                              QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         return 1;
     }
     ReadConfigFile(mapArgs, mapMultiArgs);
@@ -261,27 +242,10 @@ int main(int argc, char *argv[])
                 {
                     window.show();
                 }
-// TODO: implement URI support on the Mac.
-#if !defined(MAC_OSX)
 
-                // Place this here as guiref has to be defined if we dont want to lose URIs
-                ipcInit();
+                // Place this here as guiref has to be defined if we don't want to lose URIs
+                ipcInit(argc, argv);
 
-                // Check for URI in argv
-                for (int i = 1; i < argc; i++)
-                {
-                    if (boost::algorithm::istarts_with(argv[i], "freicoin:"))
-                    {
-                        const char *strURI = argv[i];
-                        try {
-                            boost::interprocess::message_queue mq(boost::interprocess::open_only, FREICOINURI_QUEUE_NAME);
-                            mq.try_send(strURI, strlen(strURI), 0);
-                        }
-                        catch (boost::interprocess::interprocess_exception &ex) {
-                        }
-                    }
-                }
-#endif
                 app.exec();
 
                 window.hide();
@@ -289,7 +253,7 @@ int main(int argc, char *argv[])
                 window.setWalletModel(0);
                 guiref = 0;
             }
-            // Shutdown the core and it's threads, but don't exit Freicoin-Qt here
+            // Shutdown the core and its threads, but don't exit Freicoin-Qt here
             Shutdown(NULL);
         }
         else

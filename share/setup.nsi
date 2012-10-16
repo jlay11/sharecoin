@@ -45,13 +45,13 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile freicoin-0.6.99-win32-setup.exe
+OutFile freicoin-0.0.1beta2-win32-setup.exe
 InstallDir $PROGRAMFILES\Freicoin
 CRCCheck on
 XPStyle on
 BrandingText " "
 ShowInstDetails show
-VIProductVersion 0.6.99.0
+VIProductVersion 0.7.1.0
 VIAddVersionKey ProductName Freicoin
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
@@ -67,7 +67,7 @@ Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
     File ../release/freicoin-qt.exe
-    File /oname=license.txt ../COPYING
+    File /oname=COPYING.txt ../COPYING
     File /oname=readme.txt ../doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
     File ../src/freicoind.exe
@@ -101,7 +101,7 @@ Section -post SEC0001
     WriteRegStr HKCR "freicoin" "URL Protocol" ""
     WriteRegStr HKCR "freicoin" "" "URL:Freicoin"
     WriteRegStr HKCR "freicoin\DefaultIcon" "" $INSTDIR\freicoin-qt.exe
-    WriteRegStr HKCR "freicoin\shell\open\command" "" '"$INSTDIR\freicoin-qt.exe" "$$1"'
+    WriteRegStr HKCR "freicoin\shell\open\command" "" '"$INSTDIR\freicoin-qt.exe" "%1"'
 SectionEnd
 
 # Macro for selecting uninstaller sections
@@ -120,7 +120,7 @@ done${UNSECTION_ID}:
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $INSTDIR\freicoin-qt.exe
-    Delete /REBOOTOK $INSTDIR\license.txt
+    Delete /REBOOTOK $INSTDIR\COPYING.txt
     Delete /REBOOTOK $INSTDIR\readme.txt
     RMDir /r /REBOOTOK $INSTDIR\daemon
     RMDir /r /REBOOTOK $INSTDIR\src

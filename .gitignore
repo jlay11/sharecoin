@@ -2,7 +2,6 @@ src/*.exe
 src/freicoin
 src/freicoind
 src/test_freicoin
-src/build.h
 .*.swp
 *.*~*
 *.bak

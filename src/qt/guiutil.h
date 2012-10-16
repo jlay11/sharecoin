@@ -30,8 +30,8 @@ namespace GUIUtil
     void setupAddressWidget(QLineEdit *widget, QWidget *parent);
     void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
-    // Parse "freicoin:" URI into recipient object, return true on succesful parsing
-    // See Freicoin URI definition discussion here: https://freicointalk.org/index.php?topic=33490.0
+    // Parse "freicoin:" URI into recipient object, return true on successful parsing
+    // See Freicoin URI definition discussion here: https://bitcointalk.org/index.php?topic=33490.0
     bool parseFreicoinURI(const QUrl &uri, SendCoinsRecipient *out);
     bool parseFreicoinURI(QString uri, SendCoinsRecipient *out);
 
@@ -47,7 +47,7 @@ namespace GUIUtil
      */
     void copyEntryData(QAbstractItemView *view, int column, int role=Qt::EditRole);
 
-    /** Get save file name, mimics QFileDialog::getSaveFileName, except that it appends a default suffix
+    /** Get save filename, mimics QFileDialog::getSaveFileName, except that it appends a default suffix
         when no suffix is provided by the user.
 
       @param[in] parent  Parent window (or 0)

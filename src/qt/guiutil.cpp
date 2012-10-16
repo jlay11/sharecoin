@@ -4,7 +4,6 @@
 #include "freicoinunits.h"
 #include "util.h"
 #include "init.h"
-#include "base58.h"
 
 #include <QString>
 #include <QDateTime>
@@ -81,11 +80,6 @@ bool parseFreicoinURI(const QUrl &uri, SendCoinsRecipient *out)
     if(uri.scheme() != QString("freicoin"))
         return false;
 
-    // check if the address is valid
-    CFreicoinAddress addressFromUri(uri.path().toStdString());
-    if (!addressFromUri.IsValid())
-        return false;
-
     SendCoinsRecipient rv;
     rv.address = uri.path();
     rv.amount = 0;
@@ -131,7 +125,7 @@ bool parseFreicoinURI(QString uri, SendCoinsRecipient *out)
     // Convert freicoin:// to freicoin:
     //
     //    Cannot handle this later, because freicoin:// will cause Qt to see the part after // as host,
-    //    which will lowercase it (and thus invalidate the address).
+    //    which will lower-case it (and thus invalidate the address).
     if(uri.startsWith("freicoin://"))
     {
         uri.replace(0, 10, "freicoin:");
@@ -412,7 +406,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 #else
 
 // TODO: OSX startup stuff; see:
-// http://developer.apple.com/mac/library/documentation/MacOSX/Conceptual/BPSystemStartup/Articles/CustomLogin.html
+// https://developer.apple.com/library/mac/#documentation/MacOSX/Conceptual/BPSystemStartup/Articles/CustomLogin.html
 
 bool GetStartOnSystemStartup() { return false; }
 bool SetStartOnSystemStartup(bool fAutoStart) { return false; }
@@ -436,7 +430,7 @@ HelpMessageBox::HelpMessageBox(QWidget *parent) :
 
     setWindowTitle(tr("Freicoin-Qt"));
     setTextFormat(Qt::PlainText);
-    // setMinimumWidth is ignored for QMessageBox so put in nonbreaking spaces to make it wider.
+    // setMinimumWidth is ignored for QMessageBox so put in non-breaking spaces to make it wider.
     setText(header + QString(QChar(0x2003)).repeated(50));
     setDetailedText(coreOptions + "\n" + uiOptions);
 }
@@ -445,13 +439,13 @@ void HelpMessageBox::printToConsole()
 {
     // On other operating systems, the expected action is to print the message to the console.
     QString strUsage = header + "\n" + coreOptions + "\n" + uiOptions;
-    fprintf(stderr, "%s", strUsage.toStdString().c_str());
+    fprintf(stdout, "%s", strUsage.toStdString().c_str());
 }
 
 void HelpMessageBox::showOrPrint()
 {
 #if defined(WIN32)
-        // On windows, show a message box, as there is no stderr/stdout in windowed applications
+        // On Windows, show a message box, as there is no stderr/stdout in windowed applications
         exec();
 #else
         // On other operating systems, print help text to console
