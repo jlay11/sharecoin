@@ -1148,6 +1148,7 @@ void MapPort()
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
     {"node.freico.in", "seed.freico.in"},
+    {"abacus.freico.in", "fledge.freico.in"},
 };
 
 void ThreadDNSAddressSeed(void* parg)
@@ -1218,7 +1219,7 @@ void ThreadDNSAddressSeed2(void* parg)
 
 unsigned int pnSeed[] =
 {
-    0x529a1347,
+    0x529a1347, 0x2d3de442,
 };
 
 void DumpAddresses()
