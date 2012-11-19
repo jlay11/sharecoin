@@ -2,14 +2,19 @@
 
 from __future__ import division
 
-TOTAL_SUPPLY   = 10**18
-EQ_HEIGHT      = 262500
+from fractions import Fraction
+
+TOTAL_SUPPLY   = 10**16 - 1
+EQ_HEIGHT      = 161280
+TITHE_RATIO    = Fraction(4,5)
+TITHE_AMOUNT   = TOTAL_SUPPLY * TITHE_RATIO // EQ_HEIGHT
+SUBSIDY_SUPPLY = TOTAL_SUPPLY - TITHE_AMOUNT * EQ_HEIGHT
 DEMURRAGE_RATE = 2**20
 
 def sample_run(subsidy):
   def get_block_value(height):
     if height < EQ_HEIGHT:
-        return TOTAL_SUPPLY//DEMURRAGE_RATE + \
+        return TOTAL_SUPPLY//DEMURRAGE_RATE + TITHE_AMOUNT + \
                ((EQ_HEIGHT - height) * subsidy)//EQ_HEIGHT
     else:
         return TOTAL_SUPPLY//DEMURRAGE_RATE
@@ -33,6 +38,7 @@ while True:
 initial = low
 if sample_run(initial) >= TOTAL_SUPPLY:
   initial = initial - 1
+print "Tithe amount:    %d" % TITHE_AMOUNT
 print "Initial subsidy: %d" % initial
 print "Initial reward:  %d" % (initial + TOTAL_SUPPLY//DEMURRAGE_RATE)
 print "Final subsidy:   %d" % 0

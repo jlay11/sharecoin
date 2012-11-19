@@ -30,7 +30,13 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
 static const int64 MIN_TX_FEE = 50000;
 static const int64 MIN_RELAY_TX_FEE = 10000;
-static const int64 MAX_MONEY = 999999999999999999LL;
+static const int64 MAX_MONEY = 9999999999999999LL;
+static const int EQ_HEIGHT = 161280;
+static const int TITHE_RATIO = 5;
+static const int64 TITHE_AMOUNT = MAX_MONEY / TITHE_RATIO / EQ_HEIGHT;
+static const int64 SUBSIDY_SUPPLY = MAX_MONEY - TITHE_AMOUNT * EQ_HEIGHT;
+static const int64 INITIAL_SUBSIDY = 15916928405LL;
+static const int DEMURRAGE_RATE = 1048576;
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 static const int COINBASE_MATURITY = 100;
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
