@@ -4,7 +4,7 @@ from hashlib import sha256
 
 VERSION    = '01000000'.decode('hex')
 PREVBLOCK  = '00'.decode('hex') * 32
-MERKLEROOT = 'b60378ffc95e67189a7cc03a250c2d2b92322f22d063f61ad4a7b1439fabe43f'.decode('hex')
+MERKLEROOT = 'c5f2b52825f75258b24a526558edee21a7a1de89433b75799d77df5b2be8e2d0'.decode('hex')
 DIFFICULTY = 'ffff001d'.decode('hex')
 
 def block_hash(unixtime, nonce):
@@ -16,7 +16,7 @@ def block_hash(unixtime, nonce):
       VERSION + PREVBLOCK + MERKLEROOT + unixtime + DIFFICULTY + nonce
     ).digest()).digest()
 
-unixtime = 1347642000
+unixtime = 1353326400
 nonce    = 0
 print "Starting at unixtime %d and nonce %d" % (unixtime, nonce)
 while block_hash(unixtime, nonce)[-4:] != '\x00\x00\x00\x00':
