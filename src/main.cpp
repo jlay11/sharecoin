@@ -1540,7 +1540,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
 
-    if (vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees))
+    if (GetTimeAdjustedValue(vtx[0].GetValueOut(), pindex->nHeight - vtx[0].nRefHeight) > GetBlockValue(pindex->nHeight, nFees))
         return false;
 
     if (fJustCheck)
