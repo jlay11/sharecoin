@@ -1,3 +1,23 @@
+freicoin (0.0.0+1beta3~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Created new genesis block and magic byte protocol headers for beta3
+      release.
+    * Implemented subsidy of charitable causes via the Freicoin Foundation,
+      with a 4:1 split of the initial distribution to addresses held in escrow
+      for future disbursement.
+    * Lowered the monetary base to 16 digits of precision, so that amounts may
+      be tracked with accuracy of a single satoshi using the decimal64 type.
+    * Fixed bug where allowed coin generation values were not being compared
+      at the same reference height. Due to the way Freicoin works, if
+      encountered this would have only resulted in a block claiming less coins
+      than it could have if it has used the correct reference height.
+    * Fixed time-traveller attack, courtesy of Art Fortz.
+    * Added 2nd DNS and IP seed node provided by @galambo; corrected DNS entry
+      for existing seed node.
+
+ -- Mark Friedenbach <mark@monetize.io>  Wed, 19 Nov 2012 15:55:30 -0700
+
 freicoin (0.0.0+1beta2~precise3) precise; urgency=low
 
   [ Mark Friedenbach ]
