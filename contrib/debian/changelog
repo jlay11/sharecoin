@@ -1,4 +1,4 @@
-freicoin (0.0.0+1beta3~precise1) precise; urgency=low
+freicoin (0.0.0+1beta3~precise2) precise; urgency=low
 
   [ Mark Friedenbach ]
     * Created new genesis block and magic byte protocol headers for beta3
