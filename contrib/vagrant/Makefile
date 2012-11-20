@@ -429,6 +429,8 @@ host-vm: .stamp-host-vm.manifest
 	
 	$(call VAGRANT_UP)
 	
+	vagrant ssh --command "echo 'grub-common hold' | sudo dpkg --set-selections"
+	
 	vagrant ssh --command "sudo apt-get update"
 	vagrant ssh --command "sudo apt-get upgrade -y"
 	$(call VAGRANT_RELOAD)
