@@ -1320,6 +1320,12 @@ CBudget GetPerpetualSubsidyBudget(int nHeight)
     return emptyBudget;
 }
 
+CBudget GetTransactionFeeBudget(int nHeight)
+{
+    static CBudget emptyBudget = CBudget(0, 1, std::vector<CBudgetEntry>());
+    return emptyBudget;
+}
+
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
     return GetInitialDistributionAmount(nHeight) +
@@ -1959,6 +1965,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     int64 nPSAmount = GetPerpetualSubsidyAmount(pindex->nHeight);
     CBudget budgetPS = GetPerpetualSubsidyAmount(pindex->nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
+
+    CBudget budgetTF = GetTransactionFeeBudget(pindex->nHeight);
+    ApplyBudget(nFees, budgetTF, mapBudget);
 
     if (!VerifyBudget(mapBudget, vtx, pindex->nHeight))
         return error("ConnectBlock() : block does not meet budget requirements");
@@ -3971,19 +3980,25 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     CBudget budgetPS = GetPerpetualSubsidyAmount(nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
 
+    // To make sure that no transaction fee budgetary entries are dropped due
+    // to truncation, we assume the largest theoretically possible transaction
+    // fee, MAX_MONEY. Once the transactions for the new block have been
+    // selected, we will go back and recreate the budget based on the actual
+    // transaction fees.
+    CBudget budgetTF = GetTransactionFeeBudget(nHeight);
+    ApplyBudget(MAX_MONEY, budgetTF, mapBudget);
+
     // Create coinbase tx
     CTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1+mapBudget.size());
     txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
-    int64 nBudgetPaid = 0LL;
     {
         std::map<CTxDestination, int64>::iterator itr; int idx;
         for (itr = mapBudget.begin(), idx=1; itr != mapBudget.end(); ++itr, ++idx) {
             txNew.vout[idx].scriptPubKey.SetDestination(itr->first);
             txNew.vout[idx].SetInitialValue(itr->second);
-            nBudgetPaid += itr->second;
         }
     }
     txNew.nRefHeight = nHeight;
@@ -4195,6 +4210,21 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
                         }
                     }
                 }
+            }
+        }
+
+        mapBudget.clear();
+        ApplyBudget(nIDAmount, budgetID, mapBudget);
+        ApplyBudget(nPSAmount, budgetPS, mapBudget);
+        ApplyBudget(nFees, budgetTF, mapBudget);
+        pblock->vtx[0].vout.resize(1+mapBudget.size());
+        int64 nBudgetPaid = 0LL;
+        {
+            std::map<CTxDestination, int64>::iterator itr; int idx;
+            for (itr = mapBudget.begin(), idx=1; itr != mapBudget.end(); ++itr, ++idx) {
+                txNew.vout[idx].scriptPubKey.SetDestination(itr->first);
+                txNew.vout[idx].SetInitialValue(itr->second);
+                nBudgetPaid += itr->second;
             }
         }
 
