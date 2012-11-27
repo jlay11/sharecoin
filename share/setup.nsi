@@ -45,7 +45,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile freicoin-0.0.1beta3-win32-setup.exe
+OutFile freicoin-0.0.1beta3-windows-setup.exe
 InstallDir $PROGRAMFILES\Freicoin
 CRCCheck on
 XPStyle on

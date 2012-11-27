@@ -1994,7 +1994,9 @@ $(TARGET)_FILES    := $(sort $($(TARGET)_FILES))
 $(TARGET)_MANIFEST := $(call BUILD_MANIFEST,$($(TARGET)_FILES))
 TARGETS            += $(TARGET)
 
-release: release-linux-tar-xz
+release: release-linux-tar-xz \
+         release-windows-setup \
+         release-windows-zip
 
 ARCH               := linux-tar-xz
 TARGET             := release-$(ARCH)
@@ -2007,6 +2009,43 @@ $(TARGET)_DEPS     := freicoind-i686-pc-linux-gnu \
                       freicoind-x86_64-pc-linux-gnu \
                       Freicoin-Qt-i686-pc-linux-gnu \
                       Freicoin-Qt-x86_64-pc-linux-gnu
+$(TARGET)_FILES    := $($(TARGET)_SCRIPT) \
+                      contrib/vagrant/cache/src-local.tar.xz
+$(TARGET)_FILES    += $(foreach PACKAGE, \
+                                $($(TARGET)_PKGS), \
+                                contrib/vagrant/cache/$(PACKAGE))
+$(TARGET)_FILES    := $(sort $($(TARGET)_FILES))
+$(TARGET)_MANIFEST := $(call BUILD_MANIFEST,$($(TARGET)_FILES))
+TARGETS            += $(TARGET)
+
+ARCH               := windows-setup
+TARGET             := release-$(ARCH)
+$(TARGET)_NAME     := release
+$(TARGET)_VERSION  := $(VERSION)
+$(TARGET)_OUTPUT   := freicoin-$($(TARGET)_VERSION)-windows-setup.exe
+$(TARGET)_SCRIPT   := contrib/gitian-descriptors/$($(TARGET)_NAME)/$(ARCH).yml
+$(TARGET)_PKGS     :=
+$(TARGET)_DEPS     := freicoind-i686-static-mingw32 \
+                      Freicoin-Qt-i686-static-mingw32
+$(TARGET)_FILES    := $($(TARGET)_SCRIPT) \
+                      contrib/vagrant/cache/src-local.tar.xz \
+                      share/setup.nsi
+$(TARGET)_FILES    += $(foreach PACKAGE, \
+                                $($(TARGET)_PKGS), \
+                                contrib/vagrant/cache/$(PACKAGE))
+$(TARGET)_FILES    := $(sort $($(TARGET)_FILES))
+$(TARGET)_MANIFEST := $(call BUILD_MANIFEST,$($(TARGET)_FILES))
+TARGETS            += $(TARGET)
+
+ARCH               := windows-zip
+TARGET             := release-$(ARCH)
+$(TARGET)_NAME     := release
+$(TARGET)_VERSION  := $(VERSION)
+$(TARGET)_OUTPUT   := freicoin-$($(TARGET)_VERSION)-windows.zip
+$(TARGET)_SCRIPT   := contrib/gitian-descriptors/$($(TARGET)_NAME)/$(ARCH).yml
+$(TARGET)_PKGS     :=
+$(TARGET)_DEPS     := freicoind-i686-static-mingw32 \
+                      Freicoin-Qt-i686-static-mingw32
 $(TARGET)_FILES    := $($(TARGET)_SCRIPT) \
                       contrib/vagrant/cache/src-local.tar.xz
 $(TARGET)_FILES    += $(foreach PACKAGE, \
