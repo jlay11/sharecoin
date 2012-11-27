@@ -1963,7 +1963,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     ApplyBudget(nIDAmount, budgetID, mapBudget);
 
     int64 nPSAmount = GetPerpetualSubsidyAmount(pindex->nHeight);
-    CBudget budgetPS = GetPerpetualSubsidyAmount(pindex->nHeight);
+    CBudget budgetPS = GetPerpetualSubsidyBudget(pindex->nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
 
     CBudget budgetTF = GetTransactionFeeBudget(pindex->nHeight);
@@ -3977,7 +3977,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     ApplyBudget(nIDAmount, budgetID, mapBudget);
 
     int64 nPSAmount = GetPerpetualSubsidyAmount(nHeight);
-    CBudget budgetPS = GetPerpetualSubsidyAmount(nHeight);
+    CBudget budgetPS = GetPerpetualSubsidyBudget(nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
 
     // To make sure that no transaction fee budgetary entries are dropped due
