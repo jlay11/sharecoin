@@ -512,6 +512,8 @@ Value getbalance(const Array& params, bool fHelp)
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
 
+    int nBlockHeight = nBestHeight;
+
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
         // (GetBalance() sums up all unspent TxOuts)
@@ -527,7 +529,7 @@ Value getbalance(const Array& params, bool fHelp)
             string strSentAccount;
             list<pair<CTxDestination, int64> > listReceived;
             list<pair<CTxDestination, int64> > listSent;
-            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount, nBestHeight);
+            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount, nBlockHeight);
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
                 BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64)& r, listReceived)
@@ -542,7 +544,7 @@ Value getbalance(const Array& params, bool fHelp)
 
     string strAccount = AccountFromValue(params[0]);
 
-    int64 nBalance = GetAccountBalance(strAccount, nBestHeight, nMinDepth);
+    int64 nBalance = GetAccountBalance(strAccount, nBlockHeight, nMinDepth);
 
     return ValueFromAmount(nBalance);
 }
