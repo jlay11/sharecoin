@@ -4232,7 +4232,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
         nLastBlockSize = nBlockSize;
         printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
-    pblock->vtx[0].vout[0].SetInitialValue(GetBlockValue(pindexPrev->nHeight+1, nFees)-nBudgetPaid);
+    pblock->vtx[0].vout[0].SetInitialValue(GetBlockValue(nHeight, nFees)-nBudgetPaid);
 
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
