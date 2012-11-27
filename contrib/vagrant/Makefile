@@ -1995,6 +1995,28 @@ $(TARGET)_FILES    := $(sort $($(TARGET)_FILES))
 $(TARGET)_MANIFEST := $(call BUILD_MANIFEST,$($(TARGET)_FILES))
 TARGETS            += $(TARGET)
 
+release: release-linux-tar-xz
+
+ARCH               := linux-tar-xz
+TARGET             := release-$(ARCH)
+$(TARGET)_NAME     := release
+$(TARGET)_VERSION  := $(VERSION)
+$(TARGET)_OUTPUT   := freicoin-$($(TARGET)_VERSION)-linux.tar.xz
+$(TARGET)_SCRIPT   := contrib/gitian-descriptors/$($(TARGET)_NAME)/$(ARCH).yml
+$(TARGET)_PKGS     :=
+$(TARGET)_DEPS     := freicoind-i686-pc-linux-gnu \
+                      freicoind-x86_64-pc-linux-gnu \
+                      Freicoin-Qt-i686-pc-linux-gnu \
+                      Freicoin-Qt-x86_64-pc-linux-gnu
+$(TARGET)_FILES    := $($(TARGET)_SCRIPT) \
+                      contrib/vagrant/cache/src-local.tar.xz
+$(TARGET)_FILES    += $(foreach PACKAGE, \
+                                $($(TARGET)_PKGS), \
+                                contrib/vagrant/cache/$(PACKAGE))
+$(TARGET)_FILES    := $(sort $($(TARGET)_FILES))
+$(TARGET)_MANIFEST := $(call BUILD_MANIFEST,$($(TARGET)_FILES))
+TARGETS            += $(TARGET)
+
 toolchain: toolchain-i686-pc-linux-gnu \
            toolchain-x86_64-pc-linux-gnu \
            toolchain-i686-apple-darwin10 \
