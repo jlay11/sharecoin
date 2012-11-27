@@ -51,6 +51,7 @@ static bool equal_sets(CoinSet a, CoinSet b)
     return ret.first == a.end() && ret.second == b.end();
 }
 
+#if 0
 BOOST_AUTO_TEST_CASE(coin_selection_tests)
 {
     static CoinSet setCoinsRet, setCoinsRet2;
@@ -289,5 +290,6 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
         }
     }
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()
