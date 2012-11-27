@@ -26,7 +26,7 @@ freicoin (0.0.0+1beta2~precise3) precise; urgency=low
     * Updated DNS and IP seed lists to match current configuration.
     * Changed ClientConnectInputs API to no longer require nBlockHeight has a
       parameter.
-    * Fix instances where blaances were being calculated incorrectly, and
+    * Fix instances where balances were being calculated incorrectly, and
       restructured the balance code to be able to get balances as-of a
       specified reference block height.
 
