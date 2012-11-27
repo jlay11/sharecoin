@@ -427,7 +427,8 @@ public:
         READWRITE(vin);
         READWRITE(vout);
         READWRITE(nLockTime);
-        READWRITE(nRefHeight);
+        if ( nVersion == 2 )
+            READWRITE(nRefHeight);
     )
 
     void SetNull()
