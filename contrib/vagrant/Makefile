@@ -1137,7 +1137,6 @@ TARGETS            += $(TARGET)
 
 freicoind: freicoind-i686-pc-linux-gnu \
            freicoind-x86_64-pc-linux-gnu \
-           freicoind-i686-apple-darwin10 \
            freicoind-i686-static-mingw32
 
 ARCH               := i686-pc-linux-gnu
