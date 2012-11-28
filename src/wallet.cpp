@@ -971,9 +971,12 @@ int64 CWallet::GetImmatureBalance(int nBlockHeight) const
 }
 
 // populate vCoins with vector of spendable COutputs
-void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed) const
+void CWallet::AvailableCoins(vector<COutput>& vCoins, int nRefHeight, bool fOnlyConfirmed) const
 {
     vCoins.clear();
+
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
 
     {
         LOCK(cs_wallet);
@@ -984,6 +987,9 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed) const
             if (!pcoin->IsFinal())
                 continue;
 
+            if (pcoin->nRefHeight > nRefHeight)
+                continue;
+
             if (fOnlyConfirmed && !pcoin->IsConfirmed())
                 continue;
 
@@ -991,7 +997,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed) const
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && GetPresentValue(*pcoin, pcoin->vout[i], nBestHeight) > 0)
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && GetPresentValue(*pcoin, pcoin->vout[i], nRefHeight) > 0)
                     vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
         }
     }
@@ -1041,6 +1047,9 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
     setCoinsRet.clear();
     nValueRet = 0;
 
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
+
     // List of values less than target
     pair<int64, pair<const CWalletTx*,unsigned int> > coinLowestLarger;
     coinLowestLarger.first = std::numeric_limits<int64>::max();
@@ -1055,6 +1064,9 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
         const CWalletTx* pcoin = output.tx;
 
         if (output.nDepth < (pcoin->IsFromMe() ? nConfMine : nConfTheirs))
+            continue;
+
+        if ( pcoin->nRefHeight > nRefHeight )
             continue;
 
         int i = output.i;
@@ -1136,8 +1148,11 @@ bool CWallet::SelectCoinsMinConf(int64 nTargetValue, int nConfMine, int nConfThe
 
 bool CWallet::SelectCoins(int64 nTargetValue, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64& nValueRet, int nRefHeight) const
 {
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
+
     vector<COutput> vCoins;
-    AvailableCoins(vCoins);
+    AvailableCoins(vCoins, nRefHeight);
 
     return (SelectCoinsMinConf(nTargetValue, 1, 6, vCoins, setCoinsRet, nValueRet, nRefHeight) ||
             SelectCoinsMinConf(nTargetValue, 1, 1, vCoins, setCoinsRet, nValueRet, nRefHeight) ||
@@ -1147,7 +1162,7 @@ bool CWallet::SelectCoins(int64 nTargetValue, set<pair<const CWalletTx*,unsigned
 
 
 
-bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
+bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, int nRefHeight, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
 {
     int64 nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64)& s, vecSend)
@@ -1158,6 +1173,9 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
     }
     if (vecSend.empty() || nValue < 0)
         return false;
+
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
 
     wtxNew.BindWallet(this);
 
@@ -1172,7 +1190,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                 wtxNew.vin.clear();
                 wtxNew.vout.clear();
                 wtxNew.fFromMe = true;
-                wtxNew.nRefHeight = nBestHeight;
+                wtxNew.nRefHeight = nRefHeight;
 
                 int64 nTotalValue = nValue + nFeeRet;
                 double dPriority = 0;
@@ -1266,11 +1284,11 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
     return true;
 }
 
-bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
+bool CWallet::CreateTransaction(CScript scriptPubKey, int64 nValue, int nRefHeight, CWalletTx& wtxNew, CReserveKey& reservekey, int64& nFeeRet)
 {
     vector< pair<CScript, int64> > vecSend;
     vecSend.push_back(make_pair(scriptPubKey, nValue));
-    return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet);
+    return CreateTransaction(vecSend, nRefHeight, wtxNew, reservekey, nFeeRet);
 }
 
 // Call after CreateTransaction unless you want to abort
@@ -1325,19 +1343,21 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey)
 
 
 
-string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew, bool fAskFee)
+string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, int nRefHeight, CWalletTx& wtxNew, bool fAskFee)
 {
     CReserveKey reservekey(this);
     int64 nFeeRequired;
 
-    int nRefHeight = nBestHeight;
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
+
     if (IsLocked())
     {
         string strError = _("Error: Wallet locked, unable to create transaction  ");
         printf("SendMoney() : %s", strError.c_str());
         return strError;
     }
-    if (!CreateTransaction(scriptPubKey, nValue, wtxNew, reservekey, nFeeRequired))
+    if (!CreateTransaction(scriptPubKey, nValue, nRefHeight, wtxNew, reservekey, nFeeRequired))
     {
         string strError;
         if (nValue + nFeeRequired > GetBalance(nRefHeight))
@@ -1359,9 +1379,11 @@ string CWallet::SendMoney(CScript scriptPubKey, int64 nValue, CWalletTx& wtxNew,
 
 
 
-string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nValue, CWalletTx& wtxNew, bool fAskFee)
+string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nValue, int nRefHeight, CWalletTx& wtxNew, bool fAskFee)
 {
-    int nRefHeight = nBestHeight;
+    if ( nRefHeight < 0 )
+        nRefHeight = nBestHeight;
+
     // Check amount
     if (nValue <= 0)
         return _("Invalid amount");
@@ -1372,7 +1394,7 @@ string CWallet::SendMoneyToDestination(const CTxDestination& address, int64 nVal
     CScript scriptPubKey;
     scriptPubKey.SetDestination(address);
 
-    return SendMoney(scriptPubKey, nValue, wtxNew, fAskFee);
+    return SendMoney(scriptPubKey, nValue, nRefHeight, wtxNew, fAskFee);
 }
 
 

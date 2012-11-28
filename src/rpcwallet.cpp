@@ -264,10 +264,12 @@ Value sendtoaddress(const Array& params, bool fHelp)
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         wtx.mapValue["to"]      = params[3].get_str();
 
+    int nRefHeight = nBestHeight;
+
     if (pwalletMain->IsLocked())
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
 
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, nRefHeight, wtx);
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
 
@@ -624,9 +626,9 @@ Value sendfrom(const Array& params, bool fHelp)
     if (params.size() > 5 && params[5].type() != null_type && !params[5].get_str().empty())
         wtx.mapValue["to"]      = params[5].get_str();
 
-    EnsureWalletIsUnlocked();
-
     int nRefHeight = nBestHeight;
+
+    EnsureWalletIsUnlocked();
 
     // Check funds
     int64 nBalance = GetAccountBalance(strAccount, nRefHeight, nMinDepth);
@@ -634,7 +636,7 @@ Value sendfrom(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account has insufficient funds");
 
     // Send
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, nRefHeight, wtx);
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
 
@@ -683,9 +685,9 @@ Value sendmany(const Array& params, bool fHelp)
         vecSend.push_back(make_pair(scriptPubKey, nAmount));
     }
 
-    EnsureWalletIsUnlocked();
-
     int nRefHeight = nBestHeight;
+
+    EnsureWalletIsUnlocked();
 
     // Check funds
     int64 nBalance = GetAccountBalance(strAccount, nRefHeight, nMinDepth);
@@ -695,7 +697,7 @@ Value sendmany(const Array& params, bool fHelp)
     // Send
     CReserveKey keyChange(pwalletMain);
     int64 nFeeRequired = 0;
-    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired);
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, nRefHeight, wtx, keyChange, nFeeRequired);
     if (!fCreated)
     {
         if (totalAmount + nFeeRequired > pwalletMain->GetBalance(nRefHeight))
