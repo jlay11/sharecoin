@@ -1,3 +1,27 @@
+freicoin (0.0.0+1beta4~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Added a transaction-fee budget (currently empty) for possible future
+      expansion. A Republicoin-like implementation for Bitcoin, for example,
+      would assay taxes from the transaction-fee budget.
+    * Added compatibility with nVesion=1 transactions. This is for possible
+      future Bitcoin compatibility only, as it is exceedingly unlikely that
+      these could ever see use on the Freicoin network.
+    * Modified the transaction-generating code to take the reference height as
+      a parameter, falling back on nBestHeight if it is not specified. The
+      user-interface code currently passes nBestHeight without exposing
+      refheight-setting functionality.
+    * Examined failing tests and fixed some, removed the others that were
+      specific to Bitcoin. `test_freicoin` now executes without error.
+    * Created gitian release scripts for generated Linux, Windows zip, and
+      Windows installer packages.
+    * Updated vagrant-based gitian build process to work with new 0.7.x
+      branch.
+    * Black-listed updates to grub in vagrant host-vm creation script, as it
+      was causing the build process to halt.
+
+ -- Mark Friedenbach <mark@monetize.io>  Wed, 28 Nov 2012 14:42:01 -0700
+
 freicoin (0.0.0+1beta3~precise2) precise; urgency=low
 
   [ Mark Friedenbach ]
