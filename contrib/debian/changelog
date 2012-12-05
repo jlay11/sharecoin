@@ -1,3 +1,13 @@
+freicoin (0.0.0+1beta5~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Switch bitcoin internals to use arbitrary-precision rational numbers for
+      internal financial calculations, using the GNU multi-precision numerics
+      library.
+    * Minor code cleanup and formatting fixes.
+
+ -- Mark Friedenbach <mark@monetize.io>  Wed, 5 Dec 2012 12:00:00 -0800
+
 freicoin (0.0.0+1beta4~precise1) precise; urgency=low
 
   [ Mark Friedenbach ]
