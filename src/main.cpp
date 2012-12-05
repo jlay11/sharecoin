@@ -56,7 +56,7 @@ double dHashesPerSec;
 int64 nHPSTimerStart;
 
 // Settings
-int64 nTransactionFee = 0;
+mpq nTransactionFee = 0;
 
 
 
@@ -448,7 +448,7 @@ bool CTransaction::CheckTransaction() const
     {
         if (txout.nValue < 0)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue negative"));
-        if (txout.nValue > MAX_MONEY)
+        if (txout.nValue > I64_MAX_MONEY)
             return DoS(100, error("CTransaction::CheckTransaction() : txout.nValue too high"));
         nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut))
@@ -479,15 +479,15 @@ bool CTransaction::CheckTransaction() const
     return true;
 }
 
-int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
-                              enum GetMinFee_mode mode) const
+mpq CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
+                            enum GetMinFee_mode mode) const
 {
     // Base fee is either MIN_TX_FEE or MIN_RELAY_TX_FEE
-    int64 nBaseFee = (mode == GMF_RELAY) ? MIN_RELAY_TX_FEE : MIN_TX_FEE;
+    mpq nBaseFee = (mode == GMF_RELAY) ? MIN_RELAY_TX_FEE : MIN_TX_FEE;
 
     unsigned int nBytes = ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
     unsigned int nNewBlockSize = nBlockSize + nBytes;
-    int64 nMinFee = (1 + (int64)nBytes / 1000) * nBaseFee;
+    mpq nMinFee = (1 + nBytes / 1000) * nBaseFee;
 
     if (fAllowFree)
     {
@@ -510,7 +510,7 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
     if (nMinFee < nBaseFee)
     {
         BOOST_FOREACH(const CTxOut& txout, vout)
-            if (txout.nValue < CENT)
+            if (i64_to_mpq(txout.nValue) < CENT)
                 nMinFee = nBaseFee;
     }
 
@@ -518,12 +518,12 @@ int64 CTransaction::GetMinFee(unsigned int nBlockSize, bool fAllowFree,
     if (nBlockSize != 1 && nNewBlockSize >= MAX_BLOCK_SIZE_GEN/2)
     {
         if (nNewBlockSize >= MAX_BLOCK_SIZE_GEN)
-            return MAX_MONEY;
+            return MPQ_MAX_MONEY;
         nMinFee *= MAX_BLOCK_SIZE_GEN / (MAX_BLOCK_SIZE_GEN - nNewBlockSize);
     }
 
     if (!MoneyRange(nMinFee))
-        nMinFee = MAX_MONEY;
+        nMinFee = MPQ_MAX_MONEY;
     return nMinFee;
 }
 
@@ -613,15 +613,16 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
         // you should add code here to check that the transaction does a
         // reasonable number of ECDSA signature verifications.
 
-        int64 nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+        mpq nFees = tx.GetValueIn(mapInputs) - tx.GetValueOut();
         unsigned int nSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 
         // Don't accept it if it can't get into a block
-        int64 txMinFee = tx.GetMinFee(1000, true, GMF_RELAY);
+        mpq txMinFee = tx.GetMinFee(1000, true, GMF_RELAY);
         if (nFees < txMinFee)
-            return error("CTxMemPool::accept() : not enough fees %s, %"PRI64d" < %"PRI64d,
+            return error("CTxMemPool::accept() : not enough fees %s, %s < %s",
                          hash.ToString().c_str(),
-                         nFees, txMinFee);
+                         FormatMoney(nFees).c_str(),
+                         FormatMoney(txMinFee).c_str());
 
         // Continuously rate-limit free transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -911,39 +912,38 @@ uint256 static GetOrphanRoot(const CBlock* pblock)
     return pblock->GetHash();
 }
 
-typedef boost::tuple<int64, CTxDestination> CBudgetEntry;
-typedef boost::tuple<int64, int64, std::vector<CBudgetEntry> > CBudget;
+typedef boost::tuple<mpz, CTxDestination> CBudgetEntry;
+typedef boost::tuple<mpq, std::vector<CBudgetEntry> > CBudget;
 
-void static ApplyBudget(int64 nAmount, const CBudget& budget,
-                        std::map<CTxDestination, int64>& mapBudgetRet)
+void static ApplyBudget(const mpq& qAmount, const CBudget& budget,
+                        std::map<CTxDestination, mpq>& mapBudgetRet)
 {
-    const std::vector<CBudgetEntry>& vBudgetEntries = boost::get<2>(budget);
+    const std::vector<CBudgetEntry>& vBudgetEntries = boost::get<1>(budget);
 
-    int64 nWeightTotal = 0LL;
+    mpz zWeightTotal = 0;
     BOOST_FOREACH(const CBudgetEntry &entry, vBudgetEntries)
-        nWeightTotal += boost::get<0>(entry);
+        zWeightTotal += boost::get<0>(entry);
 
     BOOST_FOREACH(const CBudgetEntry &entry, vBudgetEntries) {
-        CBigNum tmp(nAmount);
+        mpq tmp = qAmount;
         tmp *= boost::get<0>(budget);
         tmp *= boost::get<0>(entry);
-        tmp /= boost::get<1>(budget);
-        tmp /= nWeightTotal;
-        mapBudgetRet[boost::get<1>(entry)] += (int64)tmp.getuint256().Get64();
+        tmp /= zWeightTotal;
+        mapBudgetRet[boost::get<1>(entry)] += tmp;
     }
 
-    std::map<CTxDestination, int64>::iterator itr = mapBudgetRet.begin();
+    std::map<CTxDestination, mpq>::iterator itr = mapBudgetRet.begin();
     while (itr != mapBudgetRet.end())
-        if (itr->second <= 0LL)
+        if (itr->second <= 0)
             mapBudgetRet.erase(itr++);
         else
             ++itr;
 }
 
-bool static VerifyBudget(const std::map<CTxDestination, int64>& mapBudget,
+bool static VerifyBudget(const std::map<CTxDestination, mpq>& mapBudget,
                          const std::vector<CTransaction>& vtx, int nBlockHeight)
 {
-    std::map<CTxDestination, int64> mapActuals;
+    std::map<CTxDestination, mpq> mapActuals;
 
     CTxDestination address;
     BOOST_FOREACH(const CTransaction &tx, vtx)
@@ -951,7 +951,7 @@ bool static VerifyBudget(const std::map<CTxDestination, int64>& mapBudget,
             if (ExtractDestination(txout.scriptPubKey, address))
                 mapActuals[address] += GetPresentValue(tx, txout, nBlockHeight);
 
-    std::map<CTxDestination, int64>::const_iterator itr;
+    std::map<CTxDestination, mpq>::const_iterator itr;
     for (itr = mapBudget.begin(); itr != mapBudget.end(); ++itr) {
         if (itr->second <= 0)
             continue;
@@ -966,11 +966,11 @@ bool static VerifyBudget(const std::map<CTxDestination, int64>& mapBudget,
     return true;
 }
 
-int64 static GetInitialDistributionAmount(int nHeight)
+mpq static GetInitialDistributionAmount(int nHeight)
 {
-    int64 nSubsidy = 0;
+    mpq nSubsidy = 0;
     if ( nHeight < EQ_HEIGHT )
-        nSubsidy = TITHE_AMOUNT + (EQ_HEIGHT-(int64)nHeight) * INITIAL_SUBSIDY / EQ_HEIGHT;
+        nSubsidy = TITHE_AMOUNT + (EQ_HEIGHT-nHeight) * INITIAL_SUBSIDY / EQ_HEIGHT;
     return nSubsidy;
 }
 
@@ -1299,34 +1299,35 @@ CBudget static GetInitialDistributionBudget(int nHeight)
         CFreicoinAddress("1PKNQqSuPknZ1PaqKkRqa9qYujWKL9KQ7E")
     };
 
-    static CBudget emptyBudget = CBudget(0, 1, std::vector<CBudgetEntry>());
+    static CBudget emptyBudget = CBudget(0, std::vector<CBudgetEntry>());
     if ( nHeight >= EQ_HEIGHT )
         return emptyBudget;
 
     std::vector<CBudgetEntry> vBudgetEntries;
     vBudgetEntries.reserve(1);
     vBudgetEntries.push_back(CBudgetEntry(1, vAddresses[nHeight*320/EQ_HEIGHT].Get()));
-    return CBudget(TITHE_AMOUNT, GetInitialDistributionAmount(nHeight), vBudgetEntries);
+    mpq qRatio = TITHE_AMOUNT / GetInitialDistributionAmount(nHeight);
+    return CBudget(qRatio, vBudgetEntries);
 }
 
-int64 static GetPerpetualSubsidyAmount(int nHeight)
+mpq static GetPerpetualSubsidyAmount(int nHeight)
 {
-    return (int64) (MAX_MONEY / DEMURRAGE_RATE);
+    return MPQ_MAX_MONEY / DEMURRAGE_RATE;
 }
 
-CBudget GetPerpetualSubsidyBudget(int nHeight)
+CBudget static GetPerpetualSubsidyBudget(int nHeight)
 {
-    static CBudget emptyBudget = CBudget(0, 1, std::vector<CBudgetEntry>());
+    static CBudget emptyBudget = CBudget(0, std::vector<CBudgetEntry>());
     return emptyBudget;
 }
 
-CBudget GetTransactionFeeBudget(int nHeight)
+CBudget static GetTransactionFeeBudget(int nHeight)
 {
-    static CBudget emptyBudget = CBudget(0, 1, std::vector<CBudgetEntry>());
+    static CBudget emptyBudget = CBudget(0, std::vector<CBudgetEntry>());
     return emptyBudget;
 }
 
-int64 static GetBlockValue(int nHeight, int64 nFees)
+mpq static GetBlockValue(int nHeight, const mpq& nFees)
 {
     return GetInitialDistributionAmount(nHeight) +
            GetPerpetualSubsidyAmount(nHeight) + nFees;
@@ -1630,38 +1631,61 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
     return txPrev.vout[input.prevout.n];
 }
 
-int64 GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth)
+mpq GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth)
 {
-    int64 nResult;
-    if ( 0 == nRelativeDepth )
-        nResult = nInitialValue;
-    else {
-        mpfr_t rate, mp, init;
-        mpfr_inits2(113, rate, mp, init, (mpfr_ptr) 0);
-        mpfr_set_ui(mp,       DEMURRAGE_RATE-1,          GMP_RNDN);
-        mpfr_div_ui(rate, mp, DEMURRAGE_RATE,            GMP_RNDN);
-        mpfr_pow_si(mp, rate,            nRelativeDepth, GMP_RNDN);
-        mpfr_set_sj(init,     (intmax_t) nInitialValue,  GMP_RNDN);
-        mpfr_mul   (mp,   mp, init,                      GMP_RNDN);
-        if ( ! mpfr_fits_intmax_p(mp, GMP_RNDZ) )
-            throw std::runtime_error("GetTimeAdjustedValue() : adjusted value does not fit in intmax_t");
-        nResult = mpfr_get_sj(mp,                        GMP_RNDZ);
-        mpfr_clears(rate, mp, init, (mpfr_ptr) 0);
-    }
-    return nResult;
+    return GetTimeAdjustedValue(i64_to_mpq(nInitialValue), nRelativeDepth);
 }
 
-int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight)
+mpq GetTimeAdjustedValue(const mpz &zInitialValue, int nRelativeDepth)
+{
+    mpq initial_value(zInitialValue);
+    return GetTimeAdjustedValue(initial_value, nRelativeDepth);
+}
+
+mpq GetTimeAdjustedValue(const mpq& qInitialValue, int nRelativeDepth)
+{
+    if ( 0 == nRelativeDepth )
+        return qInitialValue;
+
+    mpfr_t rate, mp;
+    mpfr_inits2(113, rate, mp, (mpfr_ptr) 0);
+    mpfr_set_ui(mp,       DEMURRAGE_RATE-1, GMP_RNDN);
+    mpfr_div_ui(rate, mp, DEMURRAGE_RATE,   GMP_RNDN);
+    mpfr_pow_si(mp, rate, nRelativeDepth,   GMP_RNDN);
+
+    mpfr_exp_t exponent;
+    mpz_t numerator, denominator;
+    mpz_inits(numerator, denominator, (mpz_ptr) 0);
+    exponent = mpfr_get_z_2exp(numerator, mp);
+    mpz_set_ui(denominator, 1);
+    if ( exponent >= 0 )
+        mpz_mul_2exp(numerator, numerator, (mp_bitcnt_t) exponent);
+    else
+        mpz_mul_2exp(denominator, denominator, (mp_bitcnt_t) -exponent);
+
+    mpfr_clears(rate, mp, (mpfr_ptr) 0);
+
+    mpq adjustment;
+    mpz_set(adjustment.get_num_mpz_t(), numerator);
+    mpz_set(adjustment.get_den_mpz_t(), denominator);
+    adjustment.canonicalize();
+
+    mpz_clears(numerator, denominator, (mpz_ptr) 0);
+
+    return adjustment * qInitialValue;
+}
+
+mpq GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight)
 {
     return GetTimeAdjustedValue(output.nValue, nBlockHeight-tx.nRefHeight);
 }
 
-int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
+mpq CTransaction::GetValueIn(const MapPrevTx& inputs) const
 {
     if (IsCoinBase())
         return 0;
 
-    int64 nResult = 0, nInput;
+    mpq nResult = 0, nInput;
     for (unsigned int i = 0; i < vin.size(); i++)
     {
         MapPrevTx::const_iterator mi = inputs.find(vin[i].prevout.hash);
@@ -1673,11 +1697,11 @@ int64 CTransaction::GetValueIn(const MapPrevTx& inputs) const
             throw std::runtime_error("CTransaction::GetValueIn() : prevout.n out of range");
 
         const CTxOut& txOut = txPrev.vout[vin[i].prevout.n];
-        nInput   = GetPresentValue(txPrev, txOut, nRefHeight);
+        nInput = GetPresentValue(txPrev, txOut, nRefHeight);
         nResult += nInput;
         // Check for negative or overflow input values
         if (!MoneyRange(nInput) || !MoneyRange(nResult))
-            return DoS(100, error("CTransaction::GetValueIn() : txin values out of range"));
+            throw DoS(100, error("CTransaction::GetValueIn() : txin values out of range"));
     }
     return nResult;
 
@@ -1725,7 +1749,7 @@ bool CTransaction::ConnectInputs(MapPrevTx inputs,
                         return error("ConnectInputs() : tried to spend coinbase at depth %d", pindexBlock->nHeight - pindex->nHeight);
 
         }
-        int64 nValueIn = GetValueIn(inputs);
+        mpq nValueIn = GetValueIn(inputs);
         if ( ! MoneyRange(nValueIn) )
             return DoS(100, error("ConnectInputs() : txin values out of range"));
         if ( GetValueOut() > nValueIn )
@@ -1833,7 +1857,7 @@ bool CTransaction::ClientConnectInputs(CTxDB& txdb)
                 return DoS(100, error("ConnectInputs() : input height less than output height"));
         }
 
-        int64 nValueIn = GetValueIn(mapInputs);
+        mpq nValueIn = GetValueIn(mapInputs);
         if ( ! MoneyRange(nValueIn) )
             return error("ClientConnectInputs() : txin values out of range");
         if ( GetValueOut() > nValueIn )
@@ -1901,7 +1925,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         nTxPos = pindex->nBlockPos + ::GetSerializeSize(CBlock(), SER_DISK, CLIENT_VERSION) - 1 + GetSizeOfCompactSize(vtx.size());
 
     map<uint256, CTxIndex> mapQueuedChanges;
-    int64 nFees = 0;
+    mpq nFees = 0;
     unsigned int nSigOps = 0;
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
@@ -1944,7 +1968,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if ( tx.nRefHeight > pindex->nHeight )
                 return DoS(100, error("ConnectBlock() : tx height > block height"));
 
-            nFees += GetTimeAdjustedValue(tx.GetValueIn(mapInputs)-tx.GetValueOut(), pindex->nHeight - tx.nRefHeight);
+            mpq qNet = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+            nFees += GetTimeAdjustedValue(qNet, pindex->nHeight - tx.nRefHeight);
 
             if (!tx.ConnectInputs(mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, fStrictPayToScriptHash))
                 return false;
@@ -1953,16 +1978,17 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
 
-    if (GetTimeAdjustedValue(vtx[0].GetValueOut(), pindex->nHeight - vtx[0].nRefHeight) > GetBlockValue(pindex->nHeight, nFees))
+    mpq qCoinbaseValue = vtx[0].GetValueOut();
+    if ( GetTimeAdjustedValue(qCoinbaseValue, pindex->nHeight - vtx[0].nRefHeight) > GetBlockValue(pindex->nHeight, nFees) )
         return false;
 
-    std::map<CTxDestination, int64> mapBudget;
+    std::map<CTxDestination, mpq> mapBudget;
 
-    int64 nIDAmount = GetInitialDistributionAmount(pindex->nHeight);
+    mpq nIDAmount = GetInitialDistributionAmount(pindex->nHeight);
     CBudget budgetID = GetInitialDistributionBudget(pindex->nHeight);
     ApplyBudget(nIDAmount, budgetID, mapBudget);
 
-    int64 nPSAmount = GetPerpetualSubsidyAmount(pindex->nHeight);
+    mpq nPSAmount = GetPerpetualSubsidyAmount(pindex->nHeight);
     CBudget budgetPS = GetPerpetualSubsidyBudget(pindex->nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
 
@@ -3970,13 +3996,13 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
 
     int nHeight = pindexPrev->nHeight + 1;
 
-    std::map<CTxDestination, int64> mapBudget;
+    std::map<CTxDestination, mpq> mapBudget;
 
-    int64 nIDAmount = GetInitialDistributionAmount(nHeight);
+    mpq nIDAmount = GetInitialDistributionAmount(nHeight);
     CBudget budgetID = GetInitialDistributionBudget(nHeight);
     ApplyBudget(nIDAmount, budgetID, mapBudget);
 
-    int64 nPSAmount = GetPerpetualSubsidyAmount(nHeight);
+    mpq nPSAmount = GetPerpetualSubsidyAmount(nHeight);
     CBudget budgetPS = GetPerpetualSubsidyBudget(nHeight);
     ApplyBudget(nPSAmount, budgetPS, mapBudget);
 
@@ -3986,7 +4012,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     // selected, we will go back and recreate the budget based on the actual
     // transaction fees.
     CBudget budgetTF = GetTransactionFeeBudget(nHeight);
-    ApplyBudget(MAX_MONEY, budgetTF, mapBudget);
+    ApplyBudget(MPQ_MAX_MONEY, budgetTF, mapBudget);
 
     // Create coinbase tx
     CTransaction txNew;
@@ -3995,10 +4021,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     txNew.vout.resize(1+mapBudget.size());
     txNew.vout[0].scriptPubKey << reservekey.GetReservedKey() << OP_CHECKSIG;
     {
-        std::map<CTxDestination, int64>::iterator itr; int idx;
+        std::map<CTxDestination, mpq>::iterator itr; int idx;
         for (itr = mapBudget.begin(), idx=1; itr != mapBudget.end(); ++itr, ++idx) {
             txNew.vout[idx].scriptPubKey.SetDestination(itr->first);
-            txNew.vout[idx].SetInitialValue(itr->second);
+            txNew.vout[idx].SetInitialValue(RoundAbsolute(itr->second, ROUND_AWAY_FROM_ZERO));
         }
     }
     txNew.nRefHeight = nHeight;
@@ -4026,12 +4052,12 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
     // a transaction spammer can cheaply fill blocks using
     // 1-satoshi-fee transactions. It should be set above the real
     // cost to you of processing a transaction.
-    int64 nMinTxFee = MIN_TX_FEE;
+    mpq nMinTxFee = MIN_TX_FEE;
     if (mapArgs.count("-mintxfee"))
         ParseMoney(mapArgs["-mintxfee"], nMinTxFee);
 
     // Collect memory pool transactions into the block
-    int64 nFees = 0;
+    mpq nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
         CTxDB txdb("r");
@@ -4051,7 +4077,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
 
             COrphan* porphan = NULL;
             double dPriority = 0;
-            int64 nTotalIn = 0;
+            mpq nTotalIn = 0;
             bool fMissingInputs = false;
             BOOST_FOREACH(const CTxIn& txin, tx.vin)
             {
@@ -4089,10 +4115,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
 
                 int nConf = txindex.GetDepthInMainChain();
 
-                int64 nValueIn = GetPresentValue(txPrev, txPrev.vout[txin.prevout.n], nHeight);
+                mpq nValueIn = GetPresentValue(txPrev, txPrev.vout[txin.prevout.n], nHeight);
                 nTotalIn += nValueIn;
 
-                dPriority += (double)nValueIn * nConf;
+                dPriority += nTotalIn.get_d() * nConf;
             }
             if (fMissingInputs) continue;
 
@@ -4103,7 +4129,8 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             // This is a more accurate fee-per-kilobyte than is used by the client code, because the
             // client code rounds up the size to the nearest 1K. That's good, because it gives an
             // incentive to create smaller transactions.
-            double dFeePerKb =  double(nTotalIn-tx.GetValueOut()) / (double(nTxSize)/1000.0);
+            mpq txValueOut = nTotalIn - tx.GetValueOut();
+            double dFeePerKb = txValueOut.get_d() / (double(nTxSize)/1000.0);
 
             if (porphan)
             {
@@ -4170,7 +4197,8 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
                 continue;
 
-            int64 nTxFees = GetTimeAdjustedValue(tx.GetValueIn(mapInputs)-tx.GetValueOut(), nHeight-tx.nRefHeight);
+            mpq nNet = tx.GetValueIn(mapInputs) - tx.GetValueOut();
+            mpq nTxFees = GetTimeAdjustedValue(nNet, nHeight-tx.nRefHeight);
 
             nTxSigOps += tx.GetP2SHSigOpCount(mapInputs);
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
@@ -4218,13 +4246,14 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
         ApplyBudget(nPSAmount, budgetPS, mapBudget);
         ApplyBudget(nFees, budgetTF, mapBudget);
         pblock->vtx[0].vout.resize(1+mapBudget.size());
-        int64 nBudgetPaid = 0LL;
+        mpq nBudgetPaid = 0;
         {
-            std::map<CTxDestination, int64>::iterator itr; int idx;
+            std::map<CTxDestination, mpq>::iterator itr; int idx;
             for (itr = mapBudget.begin(), idx=1; itr != mapBudget.end(); ++itr, ++idx) {
                 txNew.vout[idx].scriptPubKey.SetDestination(itr->first);
-                txNew.vout[idx].SetInitialValue(itr->second);
-                nBudgetPaid += itr->second;
+                mpq qActual = RoundAbsolute(itr->second, ROUND_AWAY_FROM_ZERO);
+                txNew.vout[idx].SetInitialValue(qActual);
+                nBudgetPaid += qActual;
             }
         }
 
@@ -4232,7 +4261,8 @@ CBlock* CreateNewBlock(CReserveKey& reservekey)
         nLastBlockSize = nBlockSize;
         printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
 
-    pblock->vtx[0].vout[0].SetInitialValue(GetBlockValue(nHeight, nFees)-nBudgetPaid);
+    mpq nBlockReward = GetBlockValue(nHeight, nFees) - nBudgetPaid;
+    pblock->vtx[0].vout[0].SetInitialValue(RoundAbsolute(nBlockReward, ROUND_TOWARDS_ZERO));
 
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();

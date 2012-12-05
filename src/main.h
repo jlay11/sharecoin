@@ -28,16 +28,19 @@ static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
-static const int64 MIN_TX_FEE = 50000;
-static const int64 MIN_RELAY_TX_FEE = 10000;
-static const int64 MAX_MONEY = 9999999999999999LL;
+static const mpq MIN_TX_FEE = mpq("50000/1");
+static const mpq MIN_RELAY_TX_FEE = mpq("10000/1");
+static const int64 I64_MAX_MONEY = 9999999999999999LL;
+static const mpz MPZ_MAX_MONEY = mpz("9999999999999999");
+static const mpq MPQ_MAX_MONEY = mpq("9999999999999999/1");
 static const int EQ_HEIGHT = 161280;
-static const int TITHE_RATIO = 5;
-static const int64 TITHE_AMOUNT = MAX_MONEY * (TITHE_RATIO-1) / TITHE_RATIO / EQ_HEIGHT;
-static const int64 SUBSIDY_SUPPLY = MAX_MONEY - TITHE_AMOUNT * EQ_HEIGHT;
-static const int64 INITIAL_SUBSIDY = 15916928405LL;
+static const mpq TITHE_RATIO = mpq("4/5");
+static const mpq TITHE_AMOUNT = MPQ_MAX_MONEY * TITHE_RATIO / EQ_HEIGHT;
+static const mpz INITIAL_SUBSIDY = mpq("15916928404");
 static const int DEMURRAGE_RATE = 1048576;
-inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= I64_MAX_MONEY); }
+inline bool MoneyRange(mpz zValue) { return (zValue >= 0 && zValue <= MPZ_MAX_MONEY); }
+inline bool MoneyRange(mpq qValue) { return (qValue >= 0 && qValue <= MPQ_MAX_MONEY); }
 static const int COINBASE_MATURITY = 100;
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
@@ -76,7 +79,7 @@ extern std::set<CWallet*> setpwalletRegistered;
 extern unsigned char pchMessageStart[4];
 
 // Settings
-extern int64 nTransactionFee;
+extern mpq nTransactionFee;
 
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64 nMinDiskSpace = 52428800;
@@ -112,8 +115,10 @@ int GetNumBlocksOfPeers();
 bool IsInitialBlockDownload();
 std::string GetWarnings(std::string strFor);
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
-int64 GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth);
-int64 GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight);
+mpq GetTimeAdjustedValue(int64 nInitialValue, int nRelativeDepth);
+mpq GetTimeAdjustedValue(const mpz &zInitialValue, int nRelativeDepth);
+mpq GetTimeAdjustedValue(const mpq &qInitialValue, int nRelativeDepth);
+mpq GetPresentValue(const CTransaction& tx, const CTxOut& output, int nBlockHeight);
 
 
 
@@ -372,7 +377,7 @@ public:
     {
         if (scriptPubKey.size() < 6)
             return "CTxOut(error)";
-        return strprintf("CTxOut(nValue=%"PRI64d".%08"PRI64d", scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30).c_str());
+        return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().substr(0,30).c_str());
     }
 
     void print() const
@@ -383,6 +388,18 @@ public:
     void SetInitialValue(int64 nInitialValue)
     {
         nValue = nInitialValue;
+    }
+
+    void SetInitialValue(const mpz &zInitialValue)
+    {
+        nValue = mpz_to_i64(zInitialValue);
+    }
+
+    void SetInitialValue(const mpq &qInitialValue)
+    {
+        mpq qValue = RoundAbsolute(qInitialValue, ROUND_SIGNAL, 0);
+        mpz zValue = qValue.get_num() / qValue.get_den();
+        nValue = mpz_to_i64(zValue);
     }
 };
 
@@ -531,7 +548,7 @@ public:
     /** Amount of freicoins spent by this transaction.
         @return sum of all outputs (note: does not include fees)
      */
-    int64 GetValueOut() const
+    mpq GetValueOut() const
     {
         int64 nValueOut = 0;
         BOOST_FOREACH(const CTxOut& txout, vout)
@@ -540,7 +557,7 @@ public:
             if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
         }
-        return nValueOut;
+        return i64_to_mpq(nValueOut);
     }
 
     /** Amount of freicoins coming in to this transaction
@@ -551,7 +568,7 @@ public:
         @return	Sum of value of all inputs (scriptSigs)
         @see CTransaction::FetchInputs
      */
-    int64 GetValueIn(const MapPrevTx& inputs) const;
+    mpq GetValueIn(const MapPrevTx& inputs) const;
 
     static bool AllowFree(double dPriority)
     {
@@ -560,7 +577,7 @@ public:
         return dPriority > COIN * 144 / 250;
     }
 
-    int64 GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=true, enum GetMinFee_mode mode=GMF_BLOCK) const;
+    mpq GetMinFee(unsigned int nBlockSize=1, bool fAllowFree=true, enum GetMinFee_mode mode=GMF_BLOCK) const;
 
     bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=NULL)
     {

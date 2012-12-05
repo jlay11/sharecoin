@@ -25,9 +25,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
 {
     QList<TransactionRecord> parts;
     int64 nTime = wtx.GetTxTime();
-    int64 nCredit = wtx.GetCredit(wtx.nRefHeight, true);
-    int64 nDebit = wtx.GetDebit(wtx.nRefHeight);
-    int64 nNet = nCredit - nDebit;
+    mpq nCredit = wtx.GetCredit(wtx.nRefHeight, true);
+    mpq nDebit = wtx.GetDebit(wtx.nRefHeight);
+    mpq nNet = nCredit - nDebit;
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
@@ -81,7 +81,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         if (fAllFromMe && fAllToMe)
         {
             // Payment to self
-            int64 nChange = wtx.GetChange(wtx.nRefHeight);
+            mpq nChange = wtx.GetChange(wtx.nRefHeight);
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
                             -(nDebit - nChange), nCredit - nChange, wtx.nRefHeight));
@@ -91,7 +91,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             // Debit
             //
-            int64 nTxFee = nDebit - wtx.GetValueOut();
+            mpq nTxFee = nDebit - wtx.GetValueOut();
 
             for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
@@ -120,7 +120,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     sub.address = mapValue["to"];
                 }
 
-                int64 nValue = GetPresentValue(wtx, txout, wtx.nRefHeight);
+                mpq nValue = GetPresentValue(wtx, txout, wtx.nRefHeight);
                 /* Add fee to first output */
                 if (nTxFee > 0)
                 {
@@ -198,7 +198,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     // For generated transactions, determine maturity
     if(type == TransactionRecord::Generated)
     {
-        int64 nCredit = wtx.GetCredit(wtx.nRefHeight, true);
+        mpq nCredit = wtx.GetCredit(wtx.nRefHeight, true);
         if (nCredit == 0)
         {
             status.maturity = TransactionStatus::Immature;

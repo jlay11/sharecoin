@@ -1,6 +1,8 @@
 #ifndef ADDRESSBOOKPAGE_H
 #define ADDRESSBOOKPAGE_H
 
+#include "bignum.h" // for mpq
+
 #include <QDialog>
 
 namespace Ui {

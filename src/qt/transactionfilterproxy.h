@@ -1,6 +1,8 @@
 #ifndef TRANSACTIONFILTERPROXY_H
 #define TRANSACTIONFILTERPROXY_H
 
+#include "bignum.h" // mpq
+
 #include <QSortFilterProxyModel>
 #include <QDateTime>
 
@@ -28,7 +30,7 @@ public:
       @note Type filter takes a bit field created with TYPE() or ALL_TYPES
      */
     void setTypeFilter(quint32 modes);
-    void setMinAmount(qint64 minimum);
+    void setMinAmount(const mpq& minimum);
     void setMinRefHeight(int minimum);
 
     /** Set maximum number of rows returned, -1 if unlimited. */
@@ -43,7 +45,7 @@ private:
     QDateTime dateTo;
     QString addrPrefix;
     quint32 typeFilter;
-    qint64 minAmount;
+    mpq minAmount;
     int32_t minRefHeight;
     int limitRows;
 

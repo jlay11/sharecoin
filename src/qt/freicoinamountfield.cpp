@@ -64,7 +64,8 @@ bool FreicoinAmountField::validate()
     bool valid = true;
     if (amount->value() == 0.0)
         valid = false;
-    if (valid && !FreicoinUnits::parse(currentUnit, text(), 0))
+    mpq unused;
+    if (valid && !FreicoinUnits::parse(currentUnit, text(), &unused))
         valid = false;
 
     setValid(valid);
@@ -115,9 +116,9 @@ QWidget *FreicoinAmountField::setupTabChain(QWidget *prev)
     return amount;
 }
 
-qint64 FreicoinAmountField::value(bool *valid_out) const
+mpq FreicoinAmountField::value(bool *valid_out) const
 {
-    qint64 val_out = 0;
+    mpq val_out = 0;
     bool valid = FreicoinUnits::parse(currentUnit, text(), &val_out);
     if(valid_out)
     {
@@ -126,7 +127,7 @@ qint64 FreicoinAmountField::value(bool *valid_out) const
     return val_out;
 }
 
-void FreicoinAmountField::setValue(qint64 value)
+void FreicoinAmountField::setValue(const mpq& value)
 {
     setText(FreicoinUnits::format(currentUnit, value));
 }
@@ -141,7 +142,7 @@ void FreicoinAmountField::unitChanged(int idx)
 
     // Parse current value and convert to new unit
     bool valid = false;
-    qint64 currentValue = value(&valid);
+    mpq currentValue = value(&valid);
 
     currentUnit = newUnit;
 

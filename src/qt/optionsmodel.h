@@ -1,6 +1,8 @@
 #ifndef OPTIONSMODEL_H
 #define OPTIONSMODEL_H
 
+#include "bignum.h" // for mpq
+
 #include <QAbstractListModel>
 
 /** Interface from Qt to configuration data structure for Freicoin client.
@@ -25,7 +27,7 @@ public:
         ProxyIP,           // QString
         ProxyPort,         // int
         ProxySocksVersion, // int
-        Fee,               // qint64
+        Fee,               // mpq serialized as QString
         DisplayUnit,       // FreicoinUnits::Unit
         DisplayAddresses,  // bool
         DetachDatabases,   // bool
@@ -43,7 +45,7 @@ public:
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 
     /* Explicit getters */
-    qint64 getTransactionFee();
+    mpq getTransactionFee();
     bool getMinimizeToTray() { return fMinimizeToTray; }
     bool getMinimizeOnClose() { return fMinimizeOnClose; }
     int getDisplayUnit() { return nDisplayUnit; }

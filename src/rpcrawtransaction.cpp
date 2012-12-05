@@ -189,7 +189,7 @@ Value listunspent(const Array& params, bool fHelp)
                 continue;
         }
 
-        int64 nValue = GetPresentValue(*out.tx, out.tx->vout[out.i], nBestHeight);
+        mpq nValue = GetPresentValue(*out.tx, out.tx->vout[out.i], nBestHeight);
         const CScript& pk = out.tx->vout[out.i].scriptPubKey;
         Object entry;
         entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));
@@ -257,8 +257,12 @@ Value createrawtransaction(const Array& params, bool fHelp)
 
         CScript scriptPubKey;
         scriptPubKey.SetDestination(address.Get());
-        int64 nAmount = AmountFromValue(s.value_);
+        mpq qAmount = AmountFromValue(s.value_);
 
+        if (qAmount != RoundAbsolute(qAmount, ROUND_TOWARDS_ZERO, 0))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, requested send amount is not an integer number of satoshis: "+FormatMoney(qAmount)));
+        mpz zAmount = qAmount.get_num() / qAmount.get_den();
+        int64 nAmount = mpz_to_i64(zAmount);
         CTxOut out(nAmount, scriptPubKey);
         rawTx.vout.push_back(out);
     }

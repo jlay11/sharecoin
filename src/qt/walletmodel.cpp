@@ -36,17 +36,17 @@ WalletModel::~WalletModel()
     unsubscribeFromCoreSignals();
 }
 
-qint64 WalletModel::getBalance(int nBlockHeight) const
+mpq WalletModel::getBalance(int nBlockHeight) const
 {
     return wallet->GetBalance(nBlockHeight);
 }
 
-qint64 WalletModel::getUnconfirmedBalance(int nBlockHeight) const
+mpq WalletModel::getUnconfirmedBalance(int nBlockHeight) const
 {
     return wallet->GetUnconfirmedBalance(nBlockHeight);
 }
 
-qint64 WalletModel::getImmatureBalance(int nBlockHeight) const
+mpq WalletModel::getImmatureBalance(int nBlockHeight) const
 {
     return wallet->GetImmatureBalance(nBlockHeight);
 }
@@ -81,9 +81,9 @@ void WalletModel::pollBalanceChanged()
 
 void WalletModel::checkBalanceChanged()
 {
-    qint64 newBalance = getBalance(nBestHeight);
-    qint64 newUnconfirmedBalance = getUnconfirmedBalance(nBestHeight);
-    qint64 newImmatureBalance = getImmatureBalance(nBestHeight);
+    mpq newBalance = getBalance(nBestHeight);
+    mpq newUnconfirmedBalance = getUnconfirmedBalance(nBestHeight);
+    mpq newImmatureBalance = getImmatureBalance(nBestHeight);
 
     if(cachedBalance != newBalance || cachedUnconfirmedBalance != newUnconfirmedBalance || cachedImmatureBalance != newImmatureBalance)
     {
@@ -124,7 +124,7 @@ bool WalletModel::validateAddress(const QString &address)
 
 WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipient> &recipients, int nRefHeight)
 {
-    qint64 total = 0;
+    mpq total = 0;
     QSet<QString> setAddress;
     QString hex;
 
@@ -171,7 +171,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         LOCK2(cs_main, wallet->cs_wallet);
 
         // Sendmany
-        std::vector<std::pair<CScript, int64> > vecSend;
+        std::vector<std::pair<CScript, mpq> > vecSend;
         foreach(const SendCoinsRecipient &rcp, recipients)
         {
             CScript scriptPubKey;
@@ -181,7 +181,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 
         CWalletTx wtx;
         CReserveKey keyChange(wallet);
-        int64 nFeeRequired = 0;
+        mpq nFeeRequired = 0;
         bool fCreated = wallet->CreateTransaction(vecSend, nRefHeight, wtx, keyChange, nFeeRequired);
 
         if(!fCreated)

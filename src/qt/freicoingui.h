@@ -1,6 +1,8 @@
 #ifndef FREICOINGUI_H
 #define FREICOINGUI_H
 
+#include "bignum.h" // for mpq
+
 #include <QMainWindow>
 #include <QSystemTrayIcon>
 
@@ -128,7 +130,7 @@ public slots:
       @param[in] nFeeRequired       the required fee
       @param[out] payFee            true to pay the fee, false to not pay the fee
     */
-    void askFee(qint64 nFeeRequired, bool *payFee);
+    void askFee(const mpq& nFeeRequired, bool *payFee);
     void handleURI(QString strURI);
 
 private slots:

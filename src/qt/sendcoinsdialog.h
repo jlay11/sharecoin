@@ -1,6 +1,8 @@
 #ifndef SENDCOINSDIALOG_H
 #define SENDCOINSDIALOG_H
 
+#include "bignum.h" // for mpq
+
 #include <QDialog>
 
 namespace Ui {
@@ -38,7 +40,7 @@ public slots:
     void accept();
     SendCoinsEntry *addEntry();
     void updateRemoveEnabled();
-    void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setBalance(const mpq& balance, const mpq& unconfirmedBalance, const mpq& immatureBalance);
 
 private:
     Ui::SendCoinsDialog *ui;

@@ -620,7 +620,7 @@ void FreicoinGUI::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-void FreicoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
+void FreicoinGUI::askFee(const mpq& nFeeRequired, bool *payFee)
 {
     QString strMessage =
         tr("This transaction is over the size limit.  You can still send it for a fee of %1, "
@@ -638,8 +638,8 @@ void FreicoinGUI::incomingTransaction(const QModelIndex & parent, int start, int
     if(!walletModel || !clientModel)
         return;
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();
-    qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent)
-                    .data(Qt::EditRole).toULongLong();
+    mpq amount = mpq(ttm->index(start, TransactionTableModel::Amount, parent)
+                     .data(Qt::EditRole).toString().toStdString());
     if(!clientModel->inInitialBlockDownload())
     {
         // On new transaction, make an info balloon

@@ -1,6 +1,8 @@
 #ifndef FREICOINFIELD_H
 #define FREICOINFIELD_H
 
+#include "bignum.h" // for mpq
+
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -13,12 +15,12 @@ QT_END_NAMESPACE
 class FreicoinAmountField: public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(qint64 value READ value WRITE setValue NOTIFY textChanged USER true)
+    Q_PROPERTY(mpq value READ value WRITE setValue NOTIFY textChanged USER true)
 public:
     explicit FreicoinAmountField(QWidget *parent = 0);
 
-    qint64 value(bool *valid=0) const;
-    void setValue(qint64 value);
+    mpq value(bool *valid=0) const;
+    void setValue(const mpq& value);
 
     /** Mark current value as invalid in UI. */
     void setValid(bool valid);

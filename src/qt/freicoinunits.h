@@ -1,6 +1,8 @@
 #ifndef FREICOINUNITS_H
 #define FREICOINUNITS_H
 
+#include "bignum.h" // for mpq
+
 #include <QString>
 #include <QAbstractListModel>
 
@@ -35,17 +37,17 @@ public:
     //! Longer description
     static QString description(int unit);
     //! Number of Satoshis (1e-8) per unit
-    static qint64 factor(int unit);
+    static mpq factor(int unit);
     //! Number of amount digits (to represent max number of coins)
     static int amountDigits(int unit);
     //! Number of decimals left
     static int decimals(int unit);
     //! Format as string
-    static QString format(int unit, qint64 amount, bool plussign=false);
+    static QString format(int unit, const mpq& amount, bool plussign=false);
     //! Format as string (with unit)
-    static QString formatWithUnit(int unit, qint64 amount, bool plussign=false);
+    static QString formatWithUnit(int unit, const mpq& amount, bool plussign=false);
     //! Parse string to coin amount
-    static bool parse(int unit, const QString &value, qint64 *val_out);
+    static bool parse(int unit, const QString &value, mpq *val_out);
     ///@}
 
     //! @name AbstractListModel implementation
