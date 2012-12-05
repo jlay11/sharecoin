@@ -29,7 +29,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x000000000543813f28d793aa6760132e8d539d6d033e1a3640101651cadb74e4");
+uint256 hashGenesisBlock("0x00000000e77d49aed4b74a02be2d1105166e36911526eb68ba56543c612f42e4");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 32);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2611,11 +2611,11 @@ bool LoadBlockIndex(bool fAllowNew)
 {
     if (fTestNet)
     {
-        pchMessageStart[0] = 0xc8;
-        pchMessageStart[1] = 0xd4;
-        pchMessageStart[2] = 0x24;
-        pchMessageStart[3] = 0x8a;
-        hashGenesisBlock = uint256("0x000000000543813f28d793aa6760132e8d539d6d033e1a3640101651cadb74e4");
+        pchMessageStart[0] = 0x45;
+        pchMessageStart[1] = 0x82;
+        pchMessageStart[2] = 0xd5;
+        pchMessageStart[3] = 0x9a;
+        hashGenesisBlock = uint256("0x000000009f38d543a9a44657f41511a58e746ef95daa804db3cfc6e89ad58245");
     }
 
     //
@@ -2654,32 +2654,32 @@ bool LoadBlockIndex(bool fAllowNew)
             << vector<unsigned char>(
                    (const unsigned char*)pszTimestamp,
                    (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetInitialValue(34990414733LL);
+        txNew.vout[0].SetInitialValue(mpz("25453671567"));
         txNew.vout[0].scriptPubKey = CScript()
             << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")
             << OP_CHECKSIG;
-        txNew.vout[1].SetInitialValue(49603174603LL);
+        txNew.vout[1].SetInitialValue(mpz("49603174604"));
         txNew.vout[1].scriptPubKey.SetDestination(CFreicoinAddress("1DCyWRmTXB9goqA4Zb88nU1Q8snA7d7n4x").Get());
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock  = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1353326400;
+        block.nTime    = 1354795200;
         block.nBits    = 0x1d00ffff;
-        block.nNonce   =  108212935;
+        block.nNonce   = 3962056014;
 
         if (fTestNet)
         {
-            block.nTime    = 1353326400;
-            block.nNonce   =  108212935;
+            block.nTime    = 1354795201;
+            block.nNonce   = 2503339422;
         }
 
         //// debug print
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0xd0e2e82b5bdf779d79753b4389dea1a721eeed5865524ab25852f72528b5f2c5"));
+        assert(block.hashMerkleRoot == uint256("0x70496215b0ab84ab475a05a42ac48c50788e80ff970bcc8981bb47e139044a12"));
         block.print();
         assert(block.GetHash() == hashGenesisBlock);
 
@@ -2932,7 +2932,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xe4, 0x74, 0xdb, 0xca };
+unsigned char pchMessageStart[4] = { 0xe4, 0x42, 0x2f, 0x61 };
 
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
