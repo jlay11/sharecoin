@@ -45,7 +45,8 @@ script: |
     --host=$TARGET \
     --prefix="$PREFIX" \
     --enable-static \
-    --disable-shared
+    --disable-shared \
+    --enable-cxx
   make
   make install
   popd
