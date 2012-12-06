@@ -1653,15 +1653,16 @@ mpq GetTimeAdjustedValue(const mpq& qInitialValue, int nRelativeDepth)
     mpfr_div_ui(rate, mp, DEMURRAGE_RATE,   GMP_RNDN);
     mpfr_pow_si(mp, rate, nRelativeDepth,   GMP_RNDN);
 
-    mpfr_exp_t exponent;
+    int exponent;
     mpz_t numerator, denominator;
-    mpz_inits(numerator, denominator, (mpz_ptr) 0);
-    exponent = mpfr_get_z_2exp(numerator, mp);
+    mpz_init(numerator);
+    mpz_init(denominator);
+    exponent = mpfr_get_z_exp(numerator, mp);
     mpz_set_ui(denominator, 1);
     if ( exponent >= 0 )
-        mpz_mul_2exp(numerator, numerator, (mp_bitcnt_t) exponent);
+        mpz_mul_2exp(numerator, numerator, exponent);
     else
-        mpz_mul_2exp(denominator, denominator, (mp_bitcnt_t) -exponent);
+        mpz_mul_2exp(denominator, denominator, -exponent);
 
     mpfr_clears(rate, mp, (mpfr_ptr) 0);
 
@@ -1670,7 +1671,8 @@ mpq GetTimeAdjustedValue(const mpq& qInitialValue, int nRelativeDepth)
     mpz_set(adjustment.get_den_mpz_t(), denominator);
     adjustment.canonicalize();
 
-    mpz_clears(numerator, denominator, (mpz_ptr) 0);
+    mpz_clear(numerator);
+    mpz_clear(denominator);
 
     return adjustment * qInitialValue;
 }
