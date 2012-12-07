@@ -1,3 +1,14 @@
+freicoin (0.0.0+1beta5~precise4) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Revert JSON-RPC back to handling financial amounts as floating point; a
+      non-ideal situation, but necessary until the JSON library is modified to
+      handle numeric types as strings.
+    * Fixed numerous serious bugs due to switch from int64 to arbitrary
+      precision; client is now much more stable.
+
+ -- Mark Friedenbach <mark@monetize.io>  Fri, 8 Dec 2012 12:00:00 -0800
+
 freicoin (0.0.0+1beta5~precise3) precise; urgency=low
 
   [ Mark Friedenbach ]
