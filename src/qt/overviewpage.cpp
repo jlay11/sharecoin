@@ -68,7 +68,7 @@ public:
             foreground = option.palette.color(QPalette::Text);
         }
         painter->setPen(foreground);
-        QString amountText = FreicoinUnits::formatWithUnit(unit, amount, true);
+        QString amountText = FreicoinUnits::formatWithUnit(unit, RoundAbsolute(amount, ROUND_TOWARDS_ZERO), true);
         if(!confirmed)
         {
             amountText = QString("[") + amountText + QString("]");

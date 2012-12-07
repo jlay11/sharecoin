@@ -162,7 +162,8 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         return AmountExceedsBalance;
     }
 
-    if((total + nTransactionFee) > getBalance(nRefHeight))
+    mpq qBalReq = total + nTransactionFee;
+    if(qBalReq > getBalance(nRefHeight))
     {
         return SendCoinsReturn(AmountWithFeeExceedsBalance, nTransactionFee);
     }
@@ -186,7 +187,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 
         if(!fCreated)
         {
-            if((total + nFeeRequired) > wallet->GetBalance(nRefHeight))
+            if(qBalReq > wallet->GetBalance(nRefHeight))
             {
                 return SendCoinsReturn(AmountWithFeeExceedsBalance, nFeeRequired);
             }
