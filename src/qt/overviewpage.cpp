@@ -135,9 +135,9 @@ void OverviewPage::setBalance(const mpq& balance, const mpq& unconfirmedBalance,
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
     currentImmatureBalance = immatureBalance;
-    ui->labelBalance->setText(FreicoinUnits::formatWithUnit(unit, balance));
-    ui->labelUnconfirmed->setText(FreicoinUnits::formatWithUnit(unit, unconfirmedBalance));
-    ui->labelImmature->setText(FreicoinUnits::formatWithUnit(unit, immatureBalance));
+    ui->labelBalance->setText(FreicoinUnits::formatWithUnit(unit, RoundAbsolute(balance, ROUND_TOWARDS_ZERO)));
+    ui->labelUnconfirmed->setText(FreicoinUnits::formatWithUnit(unit, RoundAbsolute(unconfirmedBalance, ROUND_TOWARDS_ZERO)));
+    ui->labelImmature->setText(FreicoinUnits::formatWithUnit(unit, RoundAbsolute(immatureBalance, ROUND_TOWARDS_ZERO)));
 
     // only show immature (newly mined) balance if it's non-zero, so as not to complicate things
     // for the non-mining users

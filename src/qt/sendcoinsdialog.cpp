@@ -295,7 +295,7 @@ void SendCoinsDialog::setBalance(const mpq& balance, const mpq& unconfirmedBalan
         return;
 
     int unit = model->getOptionsModel()->getDisplayUnit();
-    ui->labelBalance->setText(FreicoinUnits::formatWithUnit(unit, balance));
+    ui->labelBalance->setText(FreicoinUnits::formatWithUnit(unit, RoundAbsolute(balance, ROUND_TOWARDS_ZERO)));
 }
 
 void SendCoinsDialog::updateDisplayUnit()
@@ -303,6 +303,6 @@ void SendCoinsDialog::updateDisplayUnit()
     if(model && model->getOptionsModel())
     {
         // Update labelBalance with the current balance and the current unit
-        ui->labelBalance->setText(FreicoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), model->getBalance(nBestHeight)));
+        ui->labelBalance->setText(FreicoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), RoundAbsolute(model->getBalance(nBestHeight), ROUND_TOWARDS_ZERO)));
     }
 }
