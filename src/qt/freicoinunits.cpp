@@ -67,9 +67,9 @@ int FreicoinUnits::amountDigits(int unit)
 {
     switch(unit)
     {
-    case FRC: return 11; // 10,000,000,000 (# digits, without commas)
-    case mFRC: return 14; // 10,000,000,000,000
-    case uFRC: return 17; // 10,000,000,000,000,000
+    case FRC: return 9; // 100,000,000 (# digits, without commas)
+    case mFRC: return 12; // 100,000,000,000
+    case uFRC: return 15; // 100,000,000,000,000
     default: return 0;
     }
 }
