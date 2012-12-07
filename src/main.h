@@ -397,8 +397,8 @@ public:
 
     void SetInitialValue(const mpq &qInitialValue)
     {
-        mpq qValue = RoundAbsolute(qInitialValue, ROUND_SIGNAL, 0);
-        mpz zValue = qValue.get_num() / qValue.get_den();
+        const mpq qValue = RoundAbsolute(qInitialValue, ROUND_SIGNAL, 0);
+        const mpz zValue = qValue.get_num() / qValue.get_den();
         nValue = mpz_to_i64(zValue);
     }
 };

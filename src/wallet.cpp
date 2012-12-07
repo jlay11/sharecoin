@@ -1200,8 +1200,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, mpq> >& vecSend, int 
                 double dPriority = 0;
                 // vouts to the payees
                 BOOST_FOREACH (const PAIRTYPE(CScript, mpq)& s, vecSend) {
-                    mpq qValue = RoundAbsolute(s.second, ROUND_SIGNAL, 0);
-                    mpz zValue = nValue.get_num() / qValue.get_den();
+                    const mpq qValue = RoundAbsolute(s.second, ROUND_SIGNAL, 0);
+                    const mpz zValue = nValue.get_num() / qValue.get_den();
                     wtxNew.vout.push_back(CTxOut(mpz_to_i64(zValue), s.first));
                 }
 
