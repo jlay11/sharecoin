@@ -96,9 +96,7 @@ void RPCTypeCheck(const Object& o,
 
 mpq AmountFromValue(const Value& value)
 {
-    mpq qAmount;
-    if (!ParseMoney(value.get_str(), qAmount))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+    const mpq qAmount = RoundAbsolute(mpq(value.get_real()), ROUND_TIES_TO_EVEN);
     if (!MoneyRange(qAmount))
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
     return qAmount;
