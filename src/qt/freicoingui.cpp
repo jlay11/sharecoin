@@ -638,8 +638,9 @@ void FreicoinGUI::incomingTransaction(const QModelIndex & parent, int start, int
     if(!walletModel || !clientModel)
         return;
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();
-    mpq amount = mpq(ttm->index(start, TransactionTableModel::Amount, parent)
-                     .data(Qt::EditRole).toString().toStdString());
+    mpq amount;
+    ParseMoney(ttm->index(start, TransactionTableModel::Amount, parent)
+               .data(Qt::EditRole).toString().toStdString(), amount);
     if(!clientModel->inInitialBlockDownload())
     {
         // On new transaction, make an info balloon
