@@ -496,7 +496,7 @@ bool ParseMoney(const char* p, mpq& nRet)
     mpq qInteger = mpq(strInteger) * qUnits;
     mpq qFraction = mpq(strFraction) * qUnits;
 
-    nRet = (qInteger + qFraction) / COIN;
+    nRet = (qInteger + qFraction) * COIN;
     return true;
 }
 
