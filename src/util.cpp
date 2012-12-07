@@ -511,7 +511,7 @@ mpq RoundAbsolute(const mpq &q, int mode, int magnitude)
     const mpq qOffset = q / qUnits;
     const mpz quotient = qOffset.get_num() / qOffset.get_den();
     const mpz remainder = qOffset.get_num() % qOffset.get_den();
-    const mpz remainder_times_two = abs(remainder *2);
+    const mpz remainder_times_two = abs(remainder) * 2;
 
     bool ret_next;
     switch (mode) {
@@ -546,11 +546,12 @@ mpq RoundAbsolute(const mpq &q, int mode, int magnitude)
     case ROUND_SIGNAL:
         if (remainder != 0)
             throw std::runtime_error("RoundAbsolute() : non-zero remainder in ROUND_SIGNAL mode");
+        ret_next = false;
         break;
     }
 
     if (ret_next) {
-        if (quotient > 0)
+        if (quotient >= 0)
             return (quotient + 1) * qUnits;
         else
             return (quotient - 1) * qUnits;
