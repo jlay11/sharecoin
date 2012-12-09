@@ -64,8 +64,7 @@ bool FreicoinAmountField::validate()
     bool valid = true;
     if (amount->value() == 0.0)
         valid = false;
-    mpq unused;
-    if (valid && !FreicoinUnits::parse(currentUnit, text(), &unused))
+    if (valid && !FreicoinUnits::parse(currentUnit, text(), 0))
         valid = false;
 
     setValid(valid);
