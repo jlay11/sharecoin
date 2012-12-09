@@ -9,6 +9,9 @@ freicoin (0.0.0+1beta5~precise5) precise; urgency=low
       1 COIN to be parsed in octal, leading to incorrect values or even
       abnormal program termination (if non-octal digits are encountered).
 
+  [ Roman Mindalev ]
+    * Update remaining images from bitcoin -> freicoin.
+
  -- Mark Friedenbach <mark@monetize.io>  Sat, 9 Dec 2012 22:00:00 -0800
 
 freicoin (0.0.0+1beta5~precise4) precise; urgency=low
