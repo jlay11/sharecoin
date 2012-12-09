@@ -56,10 +56,10 @@ mpq FreicoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case FRC:  return 100000000;
-    case mFRC: return 100000;
-    case uFRC: return 100;
-    default:   return 100000000;
+    case uFRC: return mpq("100/1");
+    case mFRC: return mpq("100000/1");
+    default:
+    case FRC:  return mpq("100000000/1");
     }
 }
 
