@@ -447,6 +447,10 @@ bool ParseMoney(const char* p, mpq& nRet)
         break;
     }
 
+    size_t nZeroPrefix = strInteger.find_first_not_of('0');
+    if ( nZeroPrefix && nZeroPrefix!=strInteger.length() )
+        strInteger.erase(0, nZeroPrefix);
+
     if (!strInteger.length())
         return false;
 
