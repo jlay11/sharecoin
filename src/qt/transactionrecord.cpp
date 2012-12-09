@@ -82,9 +82,11 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         {
             // Payment to self
             mpq nChange = wtx.GetChange(wtx.nRefHeight);
+            mpq debit = -(nDebit - nChange);
+            mpq credit = nCredit - nChange;
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                            -(nDebit - nChange), nCredit - nChange, wtx.nRefHeight));
+                         debit, credit, wtx.nRefHeight));
         }
         else if (fAllFromMe)
         {
