@@ -2657,11 +2657,11 @@ bool LoadBlockIndex(bool fAllowNew)
             << vector<unsigned char>(
                    (const unsigned char*)pszTimestamp,
                    (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetInitialValue(mpz("25453671567"));
+        txNew.vout[0].SetInitialValue(25453671567LL);
         txNew.vout[0].scriptPubKey = CScript()
             << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")
             << OP_CHECKSIG;
-        txNew.vout[1].SetInitialValue(mpz("49603174604"));
+        txNew.vout[1].SetInitialValue(49603174604LL);
         txNew.vout[1].scriptPubKey = CScript()
             << OP_DUP
             << OP_HASH160
