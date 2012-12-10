@@ -3,6 +3,8 @@
 #include "freicoinunits.h"
 
 #include "guiconstants.h"
+#include "main.h"
+#include "util.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -61,11 +63,9 @@ void FreicoinAmountField::clear()
 
 bool FreicoinAmountField::validate()
 {
-    bool valid = true;
-    if (amount->value() == 0.0)
-        valid = false;
-    if (valid && !FreicoinUnits::parse(currentUnit, text(), 0))
-        valid = false;
+    mpq value = 0; bool valid = false;
+    if (FreicoinUnits::parse(currentUnit, text(), &value) && MoneyRange(value))
+        valid = true;
 
     setValid(valid);
 
@@ -115,7 +115,19 @@ QWidget *FreicoinAmountField::setupTabChain(QWidget *prev)
     return amount;
 }
 
-mpq FreicoinAmountField::value(bool *valid_out) const
+qint64 FreicoinAmountField::value(bool *valid_out) const
+{
+    mpq qValue = valueAsMpq(valid_out);
+    mpz zValue = qValue.get_num() / qValue.get_den();
+    return mpz_to_i64(zValue);
+}
+
+void FreicoinAmountField::setValue(qint64 value)
+{
+    setValue(i64_to_mpq(value));
+}
+
+mpq FreicoinAmountField::valueAsMpq(bool *valid_out) const
 {
     mpq val_out = 0;
     bool valid = FreicoinUnits::parse(currentUnit, text(), &val_out);
@@ -128,7 +140,7 @@ mpq FreicoinAmountField::value(bool *valid_out) const
 
 void FreicoinAmountField::setValue(const mpq& value)
 {
-    setText(FreicoinUnits::format(currentUnit, value));
+    setText(FreicoinUnits::format(currentUnit, RoundAbsolute(value, ROUND_TOWARDS_ZERO)));
 }
 
 void FreicoinAmountField::unitChanged(int idx)
@@ -141,7 +153,7 @@ void FreicoinAmountField::unitChanged(int idx)
 
     // Parse current value and convert to new unit
     bool valid = false;
-    mpq currentValue = value(&valid);
+    mpq currentValue = valueAsMpq(&valid);
 
     currentUnit = newUnit;
 

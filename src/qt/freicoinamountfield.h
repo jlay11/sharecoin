@@ -15,11 +15,13 @@ QT_END_NAMESPACE
 class FreicoinAmountField: public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(mpq value READ value WRITE setValue NOTIFY textChanged USER true)
+    Q_PROPERTY(qint64 value READ value WRITE setValue NOTIFY textChanged USER true)
 public:
     explicit FreicoinAmountField(QWidget *parent = 0);
 
-    mpq value(bool *valid=0) const;
+    qint64 value(bool *valid=0) const;
+    void setValue(qint64 value);
+    mpq valueAsMpq(bool *value=0) const;
     void setValue(const mpq& value);
 
     /** Mark current value as invalid in UI. */
