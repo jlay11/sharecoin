@@ -92,7 +92,11 @@ QString FreicoinUnits::format(int unit, const mpq& n, bool fPlus)
     if(!valid(unit))
         return QString(); // Refuse to format invalid unit
     mpq q = n * COIN / factor(unit);
-    return QString::fromStdString(FormatMoney(q, fPlus));
+    std::string str = FormatMoney(q, fPlus);
+    int diff = 8 - decimals(unit);
+    if(diff > 0)
+        str.erase(str.length() - diff, diff);
+    return QString::fromStdString(str);
 }
 
 QString FreicoinUnits::formatWithUnit(int unit, const mpq& amount, bool plussign)
