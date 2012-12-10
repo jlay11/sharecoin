@@ -2662,7 +2662,12 @@ bool LoadBlockIndex(bool fAllowNew)
             << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")
             << OP_CHECKSIG;
         txNew.vout[1].SetInitialValue(mpz("49603174604"));
-        txNew.vout[1].scriptPubKey.SetDestination(CFreicoinAddress("1DCyWRmTXB9goqA4Zb88nU1Q8snA7d7n4x").Get());
+        txNew.vout[1].scriptPubKey = CScript()
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("85e54144c4020a65fa0a8fdbac8bba75dbc2fd00")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock  = 0;
