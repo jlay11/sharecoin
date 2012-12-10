@@ -312,7 +312,7 @@ enum
     ROUND_SIGNAL,
 };
 
-mpq RoundAbsolute(const mpq &q, int mode, int magnitude=0);
+mpq RoundAbsolute(const mpq &q, int mode=ROUND_TIES_TO_EVEN, int magnitude=0);
 
 template<typename T>
 std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
