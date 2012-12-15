@@ -2650,19 +2650,94 @@ bool LoadBlockIndex(bool fAllowNew)
         txNew.nVersion = 2;
         txNew.nRefHeight = 0;
         txNew.vin .resize(1);
-        txNew.vout.resize(2);
+        txNew.vout.resize(8);
         txNew.vin[0].scriptSig = CScript()
             << 486604799
             << CBigNum(4)
             << vector<unsigned char>(
                    (const unsigned char*)pszTimestamp,
                    (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].SetInitialValue(25453671567LL);
+        txNew.vout[0].SetInitialValue(25453671561LL);
         txNew.vout[0].scriptPubKey = CScript()
             << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f")
             << OP_CHECKSIG;
-        txNew.vout[1].SetInitialValue(49603174604LL);
+        txNew.vout[1].SetInitialValue(1LL);
         txNew.vout[1].scriptPubKey = CScript()
+            << uint256("0x0000000000000000000000000000000000000000000000000000000000000000")
+            << OP_DROP
+            << OP_FALSE;
+        const char* pszMessage2 = "\
+Metals were an implicitly abusive agreement.\n\
+Modern \"paper\" is a flawed tool, its engineering is a nest of leeches.\n\
+The old money is obsolete.\n\
+Let the individual monetize its credit without cartel intermediaries.\n\
+Give us a rent-less cash so we can be free for the first time.\n\
+Let this be the awaited dawn.";
+        txNew.vout[2].SetInitialValue(1LL);
+        txNew.vout[2].scriptPubKey = CScript()
+            << vector<unsigned char>(
+                   (const unsigned char*)pszMessage2,
+                   (const unsigned char*)pszMessage2 + strlen(pszMessage2))
+            << OP_DROP
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("0ef0f9d19a653023554146a866238b8822bc84df")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
+        const char* pszMessage3 = "\
+\"Let us calculate, without further ado, in order to see who is right.\" --Gottfried Wilhelm Leibniz\n\
+\xce\xbe\xc2\xb4\xef\xbd\xa5\xe2\x88\x80\xef\xbd\xa5`\xef\xbc\x89\xe3\x80\x80\xe3\x80\x80\xe3\x80\x80\xe3\x80\x80  n\n\
+\xef\xbf\xa3\xe3\x80\x80\xe3\x80\x80\xe3\x80\x80  \xef\xbc\xbc\xe3\x80\x80\xe3\x80\x80  \xef\xbc\x88 E\xef\xbc\x89 good job, maaku!\n\
+\xef\xbe\x8c\xe3\x80\x80\xe3\x80\x80\xe3\x80\x80  /\xe3\x83\xbd \xe3\x83\xbd_\xef\xbc\x8f\xef\xbc\x8f";
+        txNew.vout[3].SetInitialValue(1LL);
+        txNew.vout[3].scriptPubKey = CScript()
+            << vector<unsigned char>(
+                   (const unsigned char*)pszMessage3,
+                   (const unsigned char*)pszMessage3 + strlen(pszMessage3))
+            << OP_DROP
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("c26be5ec809aa4bf6b30aa89823cff7cedc3679a")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
+        const char* pszMessage4 = "Ich w\xc3\xbc""nsche Freicoin viel Erfolg zum Nutzen der 99 Prozent!";
+        txNew.vout[4].SetInitialValue(1LL);
+        txNew.vout[4].scriptPubKey = CScript()
+            << vector<unsigned char>(
+                   (const unsigned char*)pszMessage4,
+                   (const unsigned char*)pszMessage4 + strlen(pszMessage4))
+            << OP_DROP
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("2939acd60037281a708eb11e4e9eda452c029eca")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
+        const char* pszMessage5 = "\"The value of a man should be seen in what he gives and not in what he is able to receive.\" --Albert Einstein";
+        txNew.vout[5].SetInitialValue(1LL);
+        txNew.vout[5].scriptPubKey = CScript()
+            << vector<unsigned char>(
+                   (const unsigned char*)pszMessage5,
+                   (const unsigned char*)pszMessage5 + strlen(pszMessage5))
+            << OP_DROP
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("f9ca5caab4bda4dc28b5556aa79a2eec0447f0bf")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
+        const char* pszMessage6 = "\"An army of principles can penetrate where an army of soldiers cannot.\" --Thomas Paine";
+        txNew.vout[6].SetInitialValue(1LL);
+        txNew.vout[6].scriptPubKey = CScript()
+            << vector<unsigned char>(
+                   (const unsigned char*)pszMessage6,
+                   (const unsigned char*)pszMessage6 + strlen(pszMessage6))
+            << OP_DROP
+            << OP_DUP
+            << OP_HASH160
+            << ParseHex("08f320cbb41a1ae25b794f6175f96080681989f3")
+            << OP_EQUALVERIFY
+            << OP_CHECKSIG;
+        txNew.vout[7].SetInitialValue(49603174604LL);
+        txNew.vout[7].scriptPubKey = CScript()
             << OP_DUP
             << OP_HASH160
             << ParseHex("85e54144c4020a65fa0a8fdbac8bba75dbc2fd00")
