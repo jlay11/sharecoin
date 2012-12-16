@@ -5,7 +5,7 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 0.0.1beta5
+!define VERSION 0.0.1
 !define COMPANY "Freicoin project"
 !define URL http://freico.in/
 
@@ -45,7 +45,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile freicoin-0.0.1beta5-4-windows-setup.exe
+OutFile freicoin-0.0.1rc1-windows-setup.exe
 InstallDir $PROGRAMFILES\Freicoin
 CRCCheck on
 XPStyle on

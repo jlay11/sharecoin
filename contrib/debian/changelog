@@ -1,3 +1,18 @@
+freicoin (0.0.0+1rc1~precise1) precise; urgency=low
+
+  [ Mark Friedenbach ]
+    * Block chain reset for release candidate.
+    * Added about menu crediting developers and Indiegogo supporters, as well
+      as the big man himself, Silvio Gesell.
+    * Added messages to the genesis block in preparation for release
+      candidate.
+
+  [ Roman Mindalev ]
+    * [GUI] Fix transaction fee in uFRC; change step for up and down arrows
+      on GUI widget to be 0.01 units for uFRC (1 satoshi).
+
+ -- Mark Friedenbach <mark@monetize.io>  Mon, 17 Dec 2012 21:00:00 -0000
+
 freicoin (0.0.0+1beta5~precise6) precise; urgency=low
 
   [ Mark Friedenbach ]

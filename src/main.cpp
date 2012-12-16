@@ -29,7 +29,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x00000000e77d49aed4b74a02be2d1105166e36911526eb68ba56543c612f42e4");
+uint256 hashGenesisBlock("0x00000000ad60705de1c22612895b8214abe1b8acc066da37e09fa394affa9f5c");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 32);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2663,7 +2663,7 @@ bool LoadBlockIndex(bool fAllowNew)
             << OP_CHECKSIG;
         txNew.vout[1].SetInitialValue(1LL);
         txNew.vout[1].scriptPubKey = CScript()
-            << uint256("0x0000000000000000000000000000000000000000000000000000000000000000")
+            << uint256("0x00000000000000f953b9fcf5716a608f7a66322e40f7bf096bdbc92871ad2651")
             << OP_DROP
             << OP_FALSE;
         const char* pszMessage2 = "\
@@ -2748,9 +2748,9 @@ Let this be the awaited dawn.";
         block.hashPrevBlock  = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1354795200;
+        block.nTime    = 1355799600;
         block.nBits    = 0x1d00ffff;
-        block.nNonce   = 3962056014;
+        block.nNonce   = 3574936323;
 
         if (fTestNet)
         {
@@ -2762,7 +2762,7 @@ Let this be the awaited dawn.";
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x70496215b0ab84ab475a05a42ac48c50788e80ff970bcc8981bb47e139044a12"));
+        assert(block.hashMerkleRoot == uint256("0x9451dfb5e4062932991e71a85e670033665aeb0e91b732b32bb6b69c2cd2c4ff"));
         block.print();
         assert(block.GetHash() == hashGenesisBlock);
 
@@ -3015,7 +3015,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xe4, 0x42, 0x2f, 0x61 };
+unsigned char pchMessageStart[4] = { 0x5c, 0x9f, 0xfa, 0xaf };
 
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
