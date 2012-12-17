@@ -2762,7 +2762,7 @@ Let this be the awaited dawn.";
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x9451dfb5e4062932991e71a85e670033665aeb0e91b732b32bb6b69c2cd2c4ff"));
+        assert(block.hashMerkleRoot == uint256("0x7b704b8952ad97d872dec8136afabbccecfa423fb7e6b6d35748d0df518c5f54"));
         block.print();
         assert(block.GetHash() == hashGenesisBlock);
 
