@@ -36,7 +36,7 @@ git clone git@github.com:freicoin/freicoin.git freicoin
 
 3.  Install dependencies from MacPorts
 
-sudo port install boost db48 openssl miniupnpc
+sudo port install boost db48 openssl miniupnpc gmp mpfr
 
 Optionally install qrencode (and set USE_QRCODE=1):
 sudo port install qrencode

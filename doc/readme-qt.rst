@@ -14,7 +14,7 @@ distribution are installed, for Debian and Ubuntu these are:
 
     apt-get install qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev \
         libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
-        libssl-dev libdb4.8++-dev
+        libssl-dev libdb4.8++-dev libgmp3-dev libmpfr-dev libminiupnpc-dev
 
 then execute the following:
 
@@ -60,7 +60,7 @@ Mac OS X
 ::
 
 	sudo port selfupdate
-	sudo port install boost db48 miniupnpc
+	sudo port install boost db48 miniupnpc gmp mpfr
 
 - Open the bitcoin-qt.pro file in Qt Creator and build as normal (cmd-B)
 
