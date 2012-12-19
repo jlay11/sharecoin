@@ -29,7 +29,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x00000000ad60705de1c22612895b8214abe1b8acc066da37e09fa394affa9f5c");
+uint256 hashGenesisBlock("0x000000005b1e3d23ecfd2dd4a6e1a35238aa0392c0a8528c40df52376d7efe2c");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 32);
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2614,11 +2614,11 @@ bool LoadBlockIndex(bool fAllowNew)
 {
     if (fTestNet)
     {
-        pchMessageStart[0] = 0x45;
-        pchMessageStart[1] = 0x82;
-        pchMessageStart[2] = 0xd5;
-        pchMessageStart[3] = 0x9a;
-        hashGenesisBlock = uint256("0x000000009f38d543a9a44657f41511a58e746ef95daa804db3cfc6e89ad58245");
+        pchMessageStart[0] = 0x5e;
+        pchMessageStart[1] = 0xd6;
+        pchMessageStart[2] = 0x7c;
+        pchMessageStart[3] = 0xf3;
+        hashGenesisBlock = uint256("0x00000000a52504ffe3420a43bd385ef24f81838921a903460b235d95f37cd65e");
     }
 
     //
@@ -2663,7 +2663,7 @@ bool LoadBlockIndex(bool fAllowNew)
             << OP_CHECKSIG;
         txNew.vout[1].SetInitialValue(1LL);
         txNew.vout[1].scriptPubKey = CScript()
-            << uint256("0x00000000000000f953b9fcf5716a608f7a66322e40f7bf096bdbc92871ad2651")
+            << uint256("0x000000000000042d1bc432a92c42c186297799da1a7b878d79edc5e080d12950")
             << OP_DROP
             << OP_FALSE;
         const char* pszMessage2 = "\
@@ -2675,6 +2675,8 @@ Give us a rent-less cash so we can be free for the first time.\n\
 Let this be the awaited dawn.";
         txNew.vout[2].SetInitialValue(1LL);
         txNew.vout[2].scriptPubKey = CScript()
+            << ParseHex("202020")
+            << OP_DROP
             << vector<unsigned char>(
                    (const unsigned char*)pszMessage2,
                    (const unsigned char*)pszMessage2 + strlen(pszMessage2))
@@ -2691,6 +2693,8 @@ Let this be the awaited dawn.";
 \xef\xbe\x8c\xe3\x80\x80\xe3\x80\x80\xe3\x80\x80  /\xe3\x83\xbd \xe3\x83\xbd_\xef\xbc\x8f\xef\xbc\x8f";
         txNew.vout[3].SetInitialValue(1LL);
         txNew.vout[3].scriptPubKey = CScript()
+            << ParseHex("2020202020202020")
+            << OP_DROP
             << vector<unsigned char>(
                    (const unsigned char*)pszMessage3,
                    (const unsigned char*)pszMessage3 + strlen(pszMessage3))
@@ -2703,6 +2707,8 @@ Let this be the awaited dawn.";
         const char* pszMessage4 = "Ich w\xc3\xbc""nsche Freicoin viel Erfolg zum Nutzen der 99 Prozent!";
         txNew.vout[4].SetInitialValue(1LL);
         txNew.vout[4].scriptPubKey = CScript()
+            << ParseHex("202020202020")
+            << OP_DROP
             << vector<unsigned char>(
                    (const unsigned char*)pszMessage4,
                    (const unsigned char*)pszMessage4 + strlen(pszMessage4))
@@ -2715,6 +2721,8 @@ Let this be the awaited dawn.";
         const char* pszMessage5 = "\"The value of a man should be seen in what he gives and not in what he is able to receive.\" --Albert Einstein";
         txNew.vout[5].SetInitialValue(1LL);
         txNew.vout[5].scriptPubKey = CScript()
+            << ParseHex("20202020202020202020202020")
+            << OP_DROP
             << vector<unsigned char>(
                    (const unsigned char*)pszMessage5,
                    (const unsigned char*)pszMessage5 + strlen(pszMessage5))
@@ -2727,6 +2735,8 @@ Let this be the awaited dawn.";
         const char* pszMessage6 = "\"An army of principles can penetrate where an army of soldiers cannot.\" --Thomas Paine";
         txNew.vout[6].SetInitialValue(1LL);
         txNew.vout[6].scriptPubKey = CScript()
+            << ParseHex("202020202020202020202020")
+            << OP_DROP
             << vector<unsigned char>(
                    (const unsigned char*)pszMessage6,
                    (const unsigned char*)pszMessage6 + strlen(pszMessage6))
@@ -2748,21 +2758,21 @@ Let this be the awaited dawn.";
         block.hashPrevBlock  = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1355799600;
+        block.nTime    = 1356123600;
         block.nBits    = 0x1d00ffff;
-        block.nNonce   = 3574936323;
+        block.nNonce   =  278229610;
 
         if (fTestNet)
         {
-            block.nTime    = 1354795201;
-            block.nNonce   = 2503339422;
+            block.nTime    = 1356123600;
+            block.nNonce   = 3098244593;
         }
 
         //// debug print
         printf("%s\n", block.GetHash().ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x7b704b8952ad97d872dec8136afabbccecfa423fb7e6b6d35748d0df518c5f54"));
+        assert(block.hashMerkleRoot == uint256("0xf53b1baa971ea40be88cf51288aabd700dfec96c486bf7155a53a4919af4c8bd"));
         block.print();
         assert(block.GetHash() == hashGenesisBlock);
 
@@ -3015,7 +3025,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0x5c, 0x9f, 0xfa, 0xaf };
+unsigned char pchMessageStart[4] = { 0x2c, 0xfe, 0x7e, 0x6d };
 
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
