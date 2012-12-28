@@ -22,7 +22,7 @@
 
 MAKEFILE := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
-VERSION  := 0.0.1-2
+VERSION  := 0.0.1-3
 
 SHELL    := $(shell bash --help >/dev/null 2>&1 && echo ba)sh
 
