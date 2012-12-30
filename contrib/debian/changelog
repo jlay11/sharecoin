@@ -1,3 +1,11 @@
+freicoin (0.0.1~precise4) precise; urgency=high
+
+  [ Mark Friedenbach ]
+    * Add extra check that coinbase transaction has reference height equal to
+      the block height.
+
+ -- Mark Friedenbach <mark@monetize.io>  Sun, 30 Dec 2012 15:30:00 -0000
+
 freicoin (0.0.1~precise3) precise; urgency=high
 
   [ Mark Friedenbach ]
