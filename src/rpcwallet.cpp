@@ -495,7 +495,7 @@ mpq GetAccountBalance(CWalletDB& walletdb, const string& strAccount, int nBlockH
 mpq GetAccountBalance(const string& strAccount, int nMinDepth, int nBlockHeight)
 {
     CWalletDB walletdb(pwalletMain->strWalletFile);
-    return GetAccountBalance(walletdb, strAccount, nBlockHeight, nMinDepth);
+    return GetAccountBalance(walletdb, strAccount, nMinDepth, nBlockHeight);
 }
 
 
