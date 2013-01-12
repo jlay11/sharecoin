@@ -54,6 +54,7 @@
 #include <QDragEnterEvent>
 #include <QUrl>
 #include <QStyle>
+#include <QSettings>
 
 #include <iostream>
 
@@ -68,7 +69,7 @@ FreicoinGUI::FreicoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0)
 {
-    resize(850, 550);
+    restoreWindowGeometry();
     setWindowTitle(tr("Freicoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/freicoin"));
@@ -181,6 +182,7 @@ FreicoinGUI::FreicoinGUI(QWidget *parent):
 
 FreicoinGUI::~FreicoinGUI()
 {
+    saveWindowGeometry();
     if(trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
         trayIcon->hide();
 #ifdef Q_OS_MAC
@@ -618,6 +620,22 @@ void FreicoinGUI::closeEvent(QCloseEvent *event)
 #endif
     }
     QMainWindow::closeEvent(event);
+}
+
+void FreicoinGUI::saveWindowGeometry()
+{
+    QSettings settings;
+    settings.setValue("winPos", pos());
+    settings.setValue("winSize", size());
+}
+
+void FreicoinGUI::restoreWindowGeometry()
+{
+    QSettings settings;
+    QPoint pos = settings.value("winPos").toPoint();
+    QSize size = settings.value("winSize", QSize(760, 460)).toSize();
+    resize(size);
+    move(pos);
 }
 
 void FreicoinGUI::askFee(const mpq& nFeeRequired, bool *payFee)
