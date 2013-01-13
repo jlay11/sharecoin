@@ -55,6 +55,7 @@
 #include <QUrl>
 #include <QStyle>
 #include <QSettings>
+#include <QDesktopWidget>
 
 #include <iostream>
 
@@ -634,6 +635,12 @@ void FreicoinGUI::restoreWindowGeometry()
     QSettings settings;
     QPoint pos = settings.value("winPos").toPoint();
     QSize size = settings.value("winSize", QSize(760, 460)).toSize();
+    if (!pos.x() && !pos.y())
+    {
+        QRect screen = qApp->desktop()->screenGeometry();
+        pos.setX((screen.width()-size.width())/2);
+        pos.setY((screen.height()-size.height())/2);
+    }
     resize(size);
     move(pos);
 }
