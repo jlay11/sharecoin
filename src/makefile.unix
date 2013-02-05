@@ -36,7 +36,8 @@ LIBS += \
    -lssl \
    -lcrypto \
    -lmpfr \
-   -lgmp
+   -lgmp \
+   -lgmpxx
 
 ifndef USE_UPNP
 	override USE_UPNP = -

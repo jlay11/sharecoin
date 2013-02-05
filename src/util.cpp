@@ -366,11 +366,6 @@ string FormatMoney(int64 n, bool fPlus)
     return FormatMoney(i64_to_mpz(n), fPlus);
 }
 
-string FormatMoney(const mpz &z, bool fPlus)
-{
-    return FormatMoney(mpq(z), fPlus);
-}
-
 string FormatMoney(const mpq &q, bool fPlus)
 {
     const bool negative = q < 0;

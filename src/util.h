@@ -180,7 +180,6 @@ void PrintException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 void ParseString(const std::string& str, char c, std::vector<std::string>& v);
 std::string FormatMoney(int64 n, bool fPlus=false);
-std::string FormatMoney(const mpz &n, bool fPlus=false);
 std::string FormatMoney(const mpq &q, bool fPlus=false);
 bool ParseMoney(const std::string& str, mpq& nRet);
 bool ParseMoney(const char* pszIn, mpq& nRet);
