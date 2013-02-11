@@ -1,3 +1,14 @@
+freicoin (0.0.2~precise1) precise; urgency=high
+
+  [Mark Friedenbach]
+    * Merge of upstream v0.7.2 bitcoind source tree.
+
+  [Roman Mindalev]
+    * New translations and updates of existing translations.
+    * Improved artwork and GUI tweaks.
+
+ -- Mark Friedenbach <mark@monetize.io>  Sun, 10 Feb 2012 12:00:00 -0000
+
 freicoin (0.0.1~precise4) precise; urgency=high
 
   [ Mark Friedenbach ]
