@@ -957,10 +957,10 @@ bool static VerifyBudget(const std::map<CTxDestination, mpq>& mapBudget,
             continue;
 
         if (!mapActuals.count(itr->first))
-            return false;
+            return error("VerifyBudget() : missing budget entry");
 
         if (mapActuals[itr->first] < itr->second)
-            return false;
+            return error("VerifyBudget() : got %s for line-item, expected %s", FormatMoney(mapActuals[itr->first]).c_str(), FormatMoney(itr->second).c_str());
     }
 
     return true;
