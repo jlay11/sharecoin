@@ -1299,6 +1299,13 @@ CBudget static GetInitialDistributionBudget(int nHeight)
         CFreicoinAddress("1PKNQqSuPknZ1PaqKkRqa9qYujWKL9KQ7E")
     };
 
+    static bool fFirstRun = true;
+    if ( fTestNet && fFirstRun ) {
+        for (int i=0; i<320; ++i)
+            vAddresses[i].ToggleTestnet();
+        fFirstRun = false;
+    }
+
     static CBudget emptyBudget = CBudget(0, std::vector<CBudgetEntry>());
     if ( nHeight >= EQ_HEIGHT )
         return emptyBudget;
